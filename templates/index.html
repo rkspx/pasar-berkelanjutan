@@ -160,6 +160,7 @@
     </div>
 </section>
 
+{% if not g.user %}
 <section class="section cta-section" style="background-color: var(--primary-green); color: var(--white);">
     <div class="container text-center">
         <h2>Ready to shop sustainably?</h2>
@@ -170,6 +171,9 @@
         </div>
     </div>
 </section>
+{% endif %}
+
+
 {% endblock %}
 
 {% block scripts %}

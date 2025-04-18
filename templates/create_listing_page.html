@@ -1,0 +1,614 @@
+{% extends "base.html" %}
+
+{% block title %}Buat Daftar Produk - Pasar Berkelanjutan Jakarta{% endblock %}
+
+{% block head %}
+<style>
+    .create-listing-container {
+        max-width: 1200px;
+        margin: 2rem auto;
+        padding: 0 1rem;
+    }
+
+    .create-listing-title {
+        margin-bottom: 1.5rem;
+        font-size: 2.25rem;
+    }
+
+    .create-listing-form {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1.5rem;
+        background-color: var(--white);
+        border-radius: var(--border-radius-lg);
+        padding: 1.5rem;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .form-section {
+        padding: 1rem;
+    }
+
+    .form-section-title {
+        font-size: 1.25rem;
+        margin-bottom: 1.5rem;
+        font-weight: 600;
+    }
+
+    .image-upload-container {
+        border: 2px dashed var(--border-light);
+        border-radius: var(--border-radius-md);
+        padding: 2rem;
+        text-align: center;
+        cursor: pointer;
+        margin-bottom: 0.5rem;
+    }
+
+    .image-upload-icon {
+        font-size: 1.5rem;
+        margin-bottom: 0.5rem;
+    }
+
+    .image-format-info {
+        font-size: 0.875rem;
+        color: var(--text-light);
+    }
+
+    .pickup-options, .payment-options {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    .option-group {
+        display: flex;
+        gap: 0.5rem;
+        align-items: center;
+    }
+
+    .market-selection {
+        display: flex;
+        gap: 0.5rem;
+    }
+
+    .market-selection button {
+        flex: 1;
+        padding: 0.5rem;
+        text-align: center;
+        background-color: var(--white);
+        border: 1px solid var(--border-light);
+        border-radius: var(--border-radius-md);
+        cursor: pointer;
+    }
+
+    .market-selection button.active {
+        background-color: var(--primary-green);
+        color: var(--white);
+        border-color: var(--primary-green);
+    }
+
+    .preview-container {
+        background-color: var(--off-white);
+        border-radius: var(--border-radius-md);
+        padding: 1rem;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .preview-image {
+        width: 100%;
+        height: 200px;
+        background-color: var(--border-light);
+        border-radius: var(--border-radius-md);
+        margin-bottom: 1rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+    }
+
+    .preview-image img {
+        max-width: 100%;
+        max-height: 100%;
+        object-fit: contain;
+    }
+
+    .preview-details {
+        width: 100%;
+    }
+
+    .preview-price {
+        font-weight: bold;
+    }
+
+    .form-actions {
+        grid-column: 1 / -1;
+        display: flex;
+        justify-content: flex-end;
+        gap: 1rem;
+        margin-top: 1rem;
+    }
+
+    .error-message {
+        color: #d32f2f;
+        font-size: 0.875rem;
+        margin-top: 0.25rem;
+        display: none;
+    }
+
+    .form-group.has-error .error-message {
+        display: block;
+    }
+
+    .form-group.has-error input,
+    .form-group.has-error textarea,
+    .form-group.has-error select {
+        border-color: #d32f2f;
+    }
+
+    /* Responsive styles */
+    @media (max-width: 768px) {
+        .create-listing-form {
+            grid-template-columns: 1fr;
+        }
+
+        .preview-container {
+            margin-top: 1.5rem;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="create-listing-container">
+    <h1 class="create-listing-title">Buat Daftar Produk</h1>
+
+    <form id="create-listing-form" class="create-listing-form">
+        <div class="form-section">
+            <h2 class="form-section-title">Informasi Produk</h2>
+            
+            <div class="form-group">
+                <label for="product-name">Nama Produk</label>
+                <input type="text" id="product-name" name="title" required>
+                <div class="error-message">Nama produk harus diisi</div>
+            </div>
+            
+            <div class="form-group">
+                <label for="product-category">Kategori</label>
+                <select id="product-category" name="category_id" required>
+                    <option value="" disabled selected>Pilih kategori</option>
+                    <!-- Categories will be populated via JavaScript -->
+                </select>
+                <div class="error-message">Pilih kategori produk</div>
+            </div>
+            
+            <div class="form-group">
+                <label for="product-description">Dekaripsi</label>
+                <textarea id="product-description" name="description" rows="4" required></textarea>
+                <div class="error-message">Deskripsi produk harus diisi</div>
+            </div>
+            
+            <div class="form-group">
+                <label for="product-price">Harga (Rp)</label>
+                <input type="number" id="product-price" name="price" min="0" required>
+                <div class="error-message">Harga produk harus diisi dengan angka</div>
+            </div>
+            
+            <div class="form-group">
+                <label for="product-unit">Satuan</label>
+                <input type="text" id="product-unit" name="unit" required>
+                <div class="error-message">Satuan produk harus diisi</div>
+            </div>
+            
+            <div class="form-group">
+                <label for="product-image">Gambar Produk</label>
+                <div class="image-upload-container" id="image-upload-container">
+                    <div class="image-upload-icon">📤</div>
+                    <div>Unggah Gambar</div>
+                </div>
+                <input type="file" id="product-image" name="image" accept="image/jpeg,image/png" style="display: none;" multiple>
+                <div class="image-format-info">Format: jpg! png maks 2MB. Maksimal 4-gambar.</div>
+                <div class="error-message">Pilih gambar produk (format jpg atau png, maks 2MB)</div>
+            </div>
+        </div>
+        
+        <div class="form-section">
+            <h2 class="form-section-title">Pengambilan & Pembayaran</h2>
+            
+            <div class="form-group">
+                <label>Metode Pengambilan</label>
+                <div class="pickup-options">
+                    <div class="option-group">
+                        <input type="checkbox" id="pickup-market" name="pickup_methods" value="market">
+                        <label for="pickup-market">Ambil di Pasar</label>
+                    </div>
+                    
+                    <div id="market-selection-container" style="display: none;">
+                        <div class="market-selection">
+                            <button type="button" id="select-market-btn">Pilih Pasar</button>
+                            <button type="button" id="select-time-btn">Slot waktu</button>
+                        </div>
+                    </div>
+                    
+                    <div class="option-group">
+                        <input type="checkbox" id="pickup-courier" name="pickup_methods" value="courier">
+                        <label for="pickup-courier">Kurir Lokal</label>
+                    </div>
+                    
+                    <div class="option-group">
+                        <input type="checkbox" id="pickup-cod" name="pickup_methods" value="cod">
+                        <label for="pickup-cod">COD</label>
+                    </div>
+                </div>
+                <div class="error-message">Pilih minimal satu metode pengambilan</div>
+            </div>
+            
+            <div class="form-group">
+                <label>Metode Pembayaran</label>
+                <div class="payment-options">
+                    <div class="option-group">
+                        <input type="checkbox" id="payment-gopay" name="payment_methods" value="gopay">
+                        <label for="payment-gopay">GoPay</label>
+                    </div>
+                    
+                    <div class="option-group">
+                        <input type="checkbox" id="payment-ovo" name="payment_methods" value="ovo">
+                        <label for="payment-ovo">OVO</label>
+                    </div>
+                    
+                    <div class="option-group">
+                        <input type="checkbox" id="payment-bank" name="payment_methods" value="bank">
+                        <label for="payment-bank">Transfer Bank</label>
+                    </div>
+                    
+                    <div class="option-group">
+                        <input type="checkbox" id="payment-cod" name="payment_methods" value="cod">
+                        <label for="payment-cod">COD</label>
+                    </div>
+                </div>
+                <div class="error-message">Pilih minimal satu metode pembayaran</div>
+            </div>
+            
+            <div class="preview-container">
+                <div class="preview-image" id="preview-image">
+                    <img id="preview-img" src="" alt="" style="display: none;">
+                </div>
+                <div class="preview-details">
+                    <h3 id="preview-name">Nama Produk</h3>
+                    <p id="preview-price">Rp</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="form-actions">
+            <button type="button" id="cancel-btn" class="btn btn-secondary">Batal</button>
+            <button type="submit" id="publish-btn" class="btn btn-primary">Publikasikan Produk</button>
+        </div>
+    </form>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Check if user is logged in
+        if (!window.api.isUserLoggedIn()) {
+            window.location.href = '/signin?redirect=/create-listing';
+            return;
+        }
+
+        const currentUser = window.api.getCurrentUser();
+        if (!currentUser.is_seller) {
+            showNotification('Hanya penjual yang dapat membuat daftar produk', 'error');
+            window.location.href = '/';
+            return;
+        }
+
+        // Initialize form elements
+        const form = document.getElementById('create-listing-form');
+        const productNameInput = document.getElementById('product-name');
+        const productCategorySelect = document.getElementById('product-category');
+        const productDescriptionInput = document.getElementById('product-description');
+        const productPriceInput = document.getElementById('product-price');
+        const productUnitInput = document.getElementById('product-unit');
+        const productImageInput = document.getElementById('product-image');
+        const imageUploadContainer = document.getElementById('image-upload-container');
+        const pickupMarketCheckbox = document.getElementById('pickup-market');
+        const marketSelectionContainer = document.getElementById('market-selection-container');
+        const previewImage = document.getElementById('preview-img');
+        const previewName = document.getElementById('preview-name');
+        const previewPrice = document.getElementById('preview-price');
+        const cancelBtn = document.getElementById('cancel-btn');
+        const publishBtn = document.getElementById('publish-btn');
+
+        // Load categories
+        loadCategories();
+
+        // Event listeners
+        imageUploadContainer.addEventListener('click', () => {
+            productImageInput.click();
+        });
+
+        productImageInput.addEventListener('change', handleImageUpload);
+        
+        pickupMarketCheckbox.addEventListener('change', function() {
+            marketSelectionContainer.style.display = this.checked ? 'block' : 'none';
+        });
+
+        // Live preview updates
+        productNameInput.addEventListener('input', updatePreview);
+        productPriceInput.addEventListener('input', updatePreview);
+
+        // Cancel button
+        cancelBtn.addEventListener('click', function() {
+            // Store draft data in localStorage
+            saveDraft();
+            
+            // Go back to previous page
+            window.history.back();
+        });
+
+        // Form submission
+        form.addEventListener('submit', handleFormSubmit);
+
+        // Load draft if exists
+        loadDraft();
+
+        // Functions
+        function loadCategories() {
+            // Fetch categories from API
+            fetch('/api/categories')
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Failed to fetch categories');
+                    }
+                    return response.json();
+                })
+                .then(categories => {
+                    // Populate category select
+                    categories.forEach(category => {
+                        const option = document.createElement('option');
+                        option.value = category.category_id;
+                        option.textContent = category.name;
+                        productCategorySelect.appendChild(option);
+                    });
+                })
+                .catch(error => {
+                    console.error('Error loading categories:', error);
+                    showNotification('Failed to load categories', 'error');
+                    
+                    // Add some default categories as fallback
+                    const defaultCategories = [
+                        { category_id: 1, name: 'Organic' },
+                        { category_id: 2, name: 'Handmade' },
+                        { category_id: 3, name: 'Eco-friendly' },
+                        { category_id: 4, name: 'Local Produce' },
+                        { category_id: 5, name: 'Zero Waste' }
+                    ];
+                    
+                    defaultCategories.forEach(category => {
+                        const option = document.createElement('option');
+                        option.value = category.category_id;
+                        option.textContent = category.name;
+                        productCategorySelect.appendChild(option);
+                    });
+                });
+        }
+
+        function handleImageUpload(event) {
+            const files = event.target.files;
+            
+            if (files.length === 0) return;
+            
+            // Validate file size and type
+            const file = files[0];
+            if (file.size > 2 * 1024 * 1024) {
+                showError(productImageInput, 'Ukuran gambar maksimal 2MB');
+                return;
+            }
+            
+            if (!['image/jpeg', 'image/png'].includes(file.type)) {
+                showError(productImageInput, 'Format gambar harus jpg atau png');
+                return;
+            }
+            
+            // Preview image
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                previewImage.src = e.target.result;
+                previewImage.style.display = 'block';
+            };
+            reader.readAsDataURL(file);
+            
+            // Clear error if any
+            clearError(productImageInput);
+        }
+
+        function updatePreview() {
+            previewName.textContent = productNameInput.value || 'Nama Produk';
+            previewPrice.textContent = productPriceInput.value ? `Rp ${productPriceInput.value}` : 'Rp';
+        }
+
+        function saveDraft() {
+            const formData = new FormData(form);
+            const draftData = {};
+            
+            for (const [key, value] of formData.entries()) {
+                draftData[key] = value;
+            }
+            
+            localStorage.setItem('listing_draft', JSON.stringify(draftData));
+        }
+
+        function loadDraft() {
+            const draftData = localStorage.getItem('listing_draft');
+            
+            if (!draftData) return;
+            
+            try {
+                const draft = JSON.parse(draftData);
+                
+                // Populate form fields
+                for (const [key, value] of Object.entries(draft)) {
+                    const input = form.elements[key];
+                    if (input) {
+                        if (input.type === 'checkbox') {
+                            input.checked = value === 'on';
+                        } else {
+                            input.value = value;
+                        }
+                    }
+                }
+                
+                // Update preview
+                updatePreview();
+                
+                // Show market selection if needed
+                if (pickupMarketCheckbox.checked) {
+                    marketSelectionContainer.style.display = 'block';
+                }
+                
+                showNotification('Draft produk berhasil dimuat', 'success');
+            } catch (error) {
+                console.error('Error loading draft:', error);
+            }
+        }
+
+        function validateForm() {
+            let isValid = true;
+            
+            // Validate required fields
+            if (!productNameInput.value.trim()) {
+                showError(productNameInput, 'Nama produk harus diisi');
+                isValid = false;
+            } else {
+                clearError(productNameInput);
+            }
+            
+            if (!productCategorySelect.value) {
+                showError(productCategorySelect, 'Pilih kategori produk');
+                isValid = false;
+            } else {
+                clearError(productCategorySelect);
+            }
+            
+            if (!productDescriptionInput.value.trim()) {
+                showError(productDescriptionInput, 'Deskripsi produk harus diisi');
+                isValid = false;
+            } else {
+                clearError(productDescriptionInput);
+            }
+            
+            if (!productPriceInput.value || isNaN(productPriceInput.value) || productPriceInput.value <= 0) {
+                showError(productPriceInput, 'Harga produk harus diisi dengan angka positif');
+                isValid = false;
+            } else {
+                clearError(productPriceInput);
+            }
+            
+            if (!productUnitInput.value.trim()) {
+                showError(productUnitInput, 'Satuan produk harus diisi');
+                isValid = false;
+            } else {
+                clearError(productUnitInput);
+            }
+            
+            // Validate pickup methods
+            const pickupMethods = document.querySelectorAll('input[name="pickup_methods"]:checked');
+            if (pickupMethods.length === 0) {
+                showError(document.querySelector('.pickup-options'), 'Pilih minimal satu metode pengambilan');
+                isValid = false;
+            } else {
+                clearError(document.querySelector('.pickup-options'));
+            }
+            
+            // Validate payment methods
+            const paymentMethods = document.querySelectorAll('input[name="payment_methods"]:checked');
+            if (paymentMethods.length === 0) {
+                showError(document.querySelector('.payment-options'), 'Pilih minimal satu metode pembayaran');
+                isValid = false;
+            } else {
+                clearError(document.querySelector('.payment-options'));
+            }
+            
+            return isValid;
+        }
+
+        function showError(element, message) {
+            const formGroup = element.closest('.form-group');
+            formGroup.classList.add('has-error');
+            const errorElement = formGroup.querySelector('.error-message');
+            if (errorElement) {
+                errorElement.textContent = message;
+            }
+        }
+
+        function clearError(element) {
+            const formGroup = element.closest('.form-group');
+            formGroup.classList.remove('has-error');
+        }
+
+        async function handleFormSubmit(event) {
+            event.preventDefault();
+            
+            if (!validateForm()) {
+                showNotification('Harap perbaiki kesalahan pada formulir', 'error');
+                return;
+            }
+            
+            // Disable submit button to prevent double submission
+            publishBtn.disabled = true;
+            publishBtn.textContent = 'Memproses...';
+            
+            try {
+                // Prepare form data
+                const formData = new FormData(form);
+                const listingData = {
+                    title: formData.get('title'),
+                    category_id: parseInt(formData.get('category_id')),
+                    description: formData.get('description'),
+                    price: parseFloat(formData.get('price')),
+                    unit: formData.get('unit'),
+                    pickup_methods: Array.from(document.querySelectorAll('input[name="pickup_methods"]:checked')).map(el => el.value),
+                    payment_methods: Array.from(document.querySelectorAll('input[name="payment_methods"]:checked')).map(el => el.value),
+                    image_urls: [] // Will be populated after image upload
+                };
+                
+                // Handle image upload
+                const imageFile = productImageInput.files[0];
+                if (imageFile) {
+                    // In a real application, you would upload the image to a server
+                    // For this example, we'll simulate it
+                    listingData.image_urls = ['https://example.com/images/placeholder.jpg'];
+                }
+                
+                // For demo purposes, we'll use a dummy address
+                listingData.address = "Jakarta, Indonesia";
+                
+                // Submit listing data
+                const response = await window.api.createListing(listingData);
+                
+                // Clear draft
+                localStorage.removeItem('listing_draft');
+                
+                // Show success message
+                showNotification('Produk berhasil dipublikasikan!', 'success');
+                
+                // Redirect to listing page
+                setTimeout(() => {
+                    window.location.href = `/product-detail?id=${response.listing_id}`;
+                }, 1500);
+                
+            } catch (error) {
+                console.error('Error creating listing:', error);
+                showNotification('Gagal membuat daftar produk: ' + error.message, 'error');
+                
+                // Re-enable submit button
+                publishBtn.disabled = false;
+                publishBtn.textContent = 'Publikasikan Produk';
+            }
+        }
+    });
+</script>
+{% endblock %}

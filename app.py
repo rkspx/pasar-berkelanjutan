@@ -1,4 +1,4 @@
-from flask import Flask, render_template, redirect, url_for, request, flash, jsonify, session
+from flask import Flask, render_template, redirect, url_for, request, flash, jsonify, session, g
 from flask_login import LoginManager, login_user, logout_user, login_required, current_user
 import config
 from models import db, User, Category, Listing, ListingImage
@@ -93,7 +93,7 @@ def signin_page():
         
         if user and user.check_password(password):
             login_user(user)
-            
+            g.user = user
             if request.is_json:
                 return jsonify({
                     'message': 'Login successful',
@@ -203,6 +203,15 @@ def order_confirmation_page():
 def page_not_found(e):
     return render_template('404_page.html'), 404
 
+@app.route('/create-listing')
+@login_required
+def create_listing_page():
+    # Only sellers can access this page
+    if not current_user.is_seller:
+        flash('Only sellers can create listings', 'error')
+        return redirect(url_for('landing_page'))
+    return render_template('create_listing_page.html')
+
 # Port configuration routes removed as we're using static configuration
 
 # API Endpoints
@@ -215,6 +224,28 @@ def api_register():
     for field in required_fields:
         if field not in data:
             return jsonify({'error': f'Missing required field: {field}'}), 400
+    
+    # Validate password strength
+    password = data['password']
+    password_errors = []
+    
+    if len(password) < 8:
+        password_errors.append("Password must be at least 8 characters long")
+    
+    if not any(char.isupper() for char in password):
+        password_errors.append("Password must contain at least one uppercase letter")
+        
+    if not any(char.islower() for char in password):
+        password_errors.append("Password must contain at least one lowercase letter")
+        
+    if not any(char.isdigit() for char in password):
+        password_errors.append("Password must contain at least one number")
+        
+    if not any(char in "!@#$%^&*()-_=+[]{}|;:,.<>?/~`" for char in password):
+        password_errors.append("Password must contain at least one special character")
+    
+    if password_errors:
+        return jsonify({'error': 'Password requirements not met', 'details': password_errors}), 400
     
     # Check if user already exists
     existing_user = User.query.filter(
@@ -489,6 +520,19 @@ def api_nearby_listings():
             result.append(listing_dict)
         
         return jsonify(result)
+
+@app.route('/api/categories', methods=['GET'])
+def api_get_categories():
+    """Get all product categories"""
+    categories = Category.query.all()
+    result = [
+        {
+            'category_id': category.category_id,
+            'name': category.name
+        }
+        for category in categories
+    ]
+    return jsonify(result)
 
 if __name__ == '__main__':
     port = config.get_port()

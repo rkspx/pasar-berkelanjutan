@@ -126,6 +126,26 @@
         padding-left: var(--spacing-lg);
         margin-top: var(--spacing-xs);
     }
+    
+    .seller-option {
+        display: flex;
+        align-items: flex-start;
+        gap: var(--spacing-sm);
+        cursor: pointer;
+    }
+    
+    .seller-option input {
+        width: auto;
+        margin-top: 5px;
+    }
+    
+    .seller-info {
+        background-color: rgba(51, 86, 51, 0.05);
+        border-left: 3px solid var(--primary-green);
+        padding: var(--spacing-sm) var(--spacing-md);
+        border-radius: 0 var(--border-radius-sm) var(--border-radius-sm) 0;
+        margin-top: var(--spacing-xs);
+    }
 </style>
 {% endblock %}
 
@@ -178,6 +198,17 @@
                 <div class="form-group">
                     <label for="confirm-password">Confirm Password</label>
                     <input type="password" id="confirm-password" name="confirm-password" placeholder="Confirm your password" required>
+                </div>
+                
+                <div class="form-group">
+                    <label class="seller-option">
+                        <input type="checkbox" id="is-seller" name="is-seller">
+                        <span>Register as a seller</span>
+                    </label>
+                    <div class="seller-info" style="font-size: 0.875rem; color: var(--text-light); margin-top: var(--spacing-xs); margin-left: 1.5rem;">
+                        As a seller, you can create product listings and sell sustainable products on the platform.
+                        You'll have access to seller-specific features like inventory management and sales analytics.
+                    </div>
                 </div>
                 
                 <label class="terms">
@@ -246,7 +277,7 @@
                 username: username,
                 email: email,
                 password: password.value,
-                is_seller: false // Default to regular user, can be changed later
+                is_seller: document.getElementById('is-seller').checked
             };
             
             // Show loading state

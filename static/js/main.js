@@ -33,6 +33,7 @@ function updateAuthUI() {
                 <ul class="user-dropdown">
                     <li><a href="/profile">My Profile</a></li>
                     ${currentUser.is_seller ? '<li><a href="/my-listings">My Listings</a></li>' : ''}
+                    ${currentUser.is_seller ? '<li><a href="/create-listing">Buat Daftar Produk</a></li>' : ''}
                     <li><a href="#" id="logout-link">Logout</a></li>
                 </ul>
             `;
@@ -69,9 +70,31 @@ function initializeNavigation() {
         mobileMenuToggle.addEventListener('click', function() {
             const mainNav = document.querySelector('.main-nav');
             mainNav.classList.toggle('active');
-            this.setAttribute('aria-expanded', 
+            this.setAttribute('aria-expanded',
                 this.getAttribute('aria-expanded') === 'true' ? 'false' : 'true'
             );
+        });
+    }
+    
+    // Initialize user dropdown menu
+    const userMenuToggle = document.querySelector('.user-menu-toggle');
+    if (userMenuToggle) {
+        userMenuToggle.addEventListener('click', function(e) {
+            e.preventDefault();
+            const dropdown = this.nextElementSibling;
+            if (dropdown && dropdown.classList.contains('user-dropdown')) {
+                dropdown.style.display = dropdown.style.display === 'block' ? 'none' : 'block';
+            }
+        });
+        
+        // Close dropdown when clicking outside
+        document.addEventListener('click', function(e) {
+            if (!e.target.closest('.user-menu-toggle') && !e.target.closest('.user-dropdown')) {
+                const dropdown = document.querySelector('.user-dropdown');
+                if (dropdown) {
+                    dropdown.style.display = 'none';
+                }
+            }
         });
     }
 }
@@ -243,9 +266,13 @@ function updateCartCount() {
  * Show Notification
  */
 function showNotification(message, type = 'success') {
+    // Sanitize the message to prevent XSS
+    const sanitizedMessage = typeof message === 'string' ?
+        document.createTextNode(message).textContent : 'Notification';
+    
     const notification = document.createElement('div');
     notification.className = `notification notification-${type}`;
-    notification.textContent = message;
+    notification.textContent = sanitizedMessage;
     
     document.body.appendChild(notification);
     
