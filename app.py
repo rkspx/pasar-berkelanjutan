@@ -1,10 +1,11 @@
 from flask import Flask, render_template, redirect, url_for, request, flash, jsonify, session
 from flask_login import LoginManager, login_user, logout_user, login_required, current_user
 import config
-from models import db, User, Category, Listing
+from models import db, User, Category, Listing, ListingImage
 from werkzeug.security import generate_password_hash, check_password_hash
 from geopy.geocoders import Nominatim
 import os
+import math
 from datetime import datetime
 from sqlalchemy import func
 from geoalchemy2.functions import ST_DWithin, ST_Point, ST_Distance
@@ -14,6 +15,7 @@ app = Flask(__name__)
 app.secret_key = config.CONFIG["flask_secret_key"]  # Use the static config
 app.config['SQLALCHEMY_DATABASE_URI'] = config.get_db_uri()
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+app.config['SQLALCHEMY_ECHO'] = True
 
 # Initialize extensions
 db.init_app(app)
@@ -63,7 +65,9 @@ def market_discovery_page():
 
 @app.route('/product-detail')
 def product_detail_page():
-    return render_template('product_detail_page.html')
+    # Get listing ID from query parameter
+    listing_id = request.args.get('id')
+    return render_template('product_detail_page.html', listing_id=listing_id)
 
 @app.route('/cart-review')
 def cart_review_page():
@@ -76,27 +80,53 @@ def checkout_page():
 @app.route('/signin', methods=['GET', 'POST'])
 def signin_page():
     if request.method == 'POST':
-        email = request.form.get('email')
-        password = request.form.get('password')
+        # Check if it's a form submission or JSON request
+        if request.is_json:
+            data = request.get_json()
+            email = data.get('email')
+            password = data.get('password')
+        else:
+            email = request.form.get('email')
+            password = request.form.get('password')
         
         user = User.query.filter_by(email=email).first()
         
         if user and user.check_password(password):
             login_user(user)
-            flash('Login successful!', 'success')
-            return redirect(url_for('landing_page'))
+            
+            if request.is_json:
+                return jsonify({
+                    'message': 'Login successful',
+                    'user_id': user.user_id,
+                    'username': user.username,
+                    'is_seller': user.is_seller
+                })
+            else:
+                flash('Login successful!', 'success')
+                return redirect(url_for('landing_page'))
         else:
-            flash('Invalid email or password', 'error')
+            if request.is_json:
+                return jsonify({'error': 'Invalid email or password'}), 401
+            else:
+                flash('Invalid email or password', 'error')
     
     return render_template('signin_page.html')
 
 @app.route('/signup', methods=['GET', 'POST'])
 def signup_page():
     if request.method == 'POST':
-        username = request.form.get('username')
-        email = request.form.get('email')
-        password = request.form.get('password')
-        is_seller = request.form.get('is_seller') == 'on'
+        # Check if it's a form submission or JSON request
+        if request.is_json:
+            data = request.get_json()
+            username = data.get('username')
+            email = data.get('email')
+            password = data.get('password')
+            is_seller = data.get('is_seller', False)
+        else:
+            username = request.form.get('username')
+            email = request.form.get('email')
+            password = request.form.get('password')
+            is_seller = request.form.get('is_seller') == 'on'
         
         # Check if user already exists
         existing_user = User.query.filter(
@@ -104,7 +134,10 @@ def signup_page():
         ).first()
         
         if existing_user:
-            flash('Username or email already exists', 'error')
+            if request.is_json:
+                return jsonify({'error': 'Username or email already exists'}), 400
+            else:
+                flash('Username or email already exists', 'error')
         else:
             new_user = User(
                 username=username,
@@ -116,9 +149,15 @@ def signup_page():
             db.session.add(new_user)
             db.session.commit()
             
-            login_user(new_user)
-            flash('Account created successfully!', 'success')
-            return redirect(url_for('landing_page'))
+            if request.is_json:
+                return jsonify({
+                    'message': 'User registered successfully',
+                    'user_id': new_user.user_id
+                }), 201
+            else:
+                login_user(new_user)
+                flash('Account created successfully!', 'success')
+                return redirect(url_for('landing_page'))
     
     return render_template('signup_page.html')
 
@@ -225,8 +264,13 @@ def api_get_listings():
     category_id = request.args.get('category_id', type=int)
     search_query = request.args.get('q')
     
-    # Start with base query
-    query = Listing.query
+    # Start with base query with eager loading of related entities
+    from sqlalchemy.orm import joinedload
+    query = Listing.query.options(
+        joinedload(Listing.images),
+        joinedload(Listing.seller),
+        joinedload(Listing.category)
+    )
     
     # Apply filters
     if category_id:
@@ -270,18 +314,27 @@ def api_create_listing():
         return jsonify({'error': f'Geocoding error: {str(e)}'}), 500
     
     # Create new listing
-    new_listing = Listing(
-        seller_id=current_user.user_id,
-        category_id=data['category_id'],
-        title=data['title'],
-        description=data['description'],
-        price=float(data['price']),
-        quantity=data.get('quantity', 1),
-        image_urls=data['image_urls'],
-        latitude=latitude,
-        longitude=longitude,
-        location=f'POINT({longitude} {latitude})'
-    )
+    listing_data = {
+        'seller_id': current_user.user_id,
+        'category_id': data['category_id'],
+        'title': data['title'],
+        'description': data['description'],
+        'price': float(data['price']),
+        'quantity': data.get('quantity', 1),
+        'latitude': latitude,
+        'longitude': longitude
+    }
+    
+    # Add location field only for non-SQLite databases
+    if config.CONFIG["db_engine"] != "sqlite":
+        listing_data['location'] = f'POINT({longitude} {latitude})'
+    
+    new_listing = Listing(**listing_data)
+    
+    # Add images
+    for image_url in data['image_urls']:
+        new_image = ListingImage(url=image_url)
+        new_listing.images.append(new_image)
     
     db.session.add(new_listing)
     db.session.commit()
@@ -293,7 +346,12 @@ def api_create_listing():
 
 @app.route('/api/listings/<int:listing_id>', methods=['GET'])
 def api_get_listing(listing_id):
-    listing = Listing.query.get_or_404(listing_id)
+    from sqlalchemy.orm import joinedload
+    listing = Listing.query.options(
+        joinedload(Listing.images),
+        joinedload(Listing.seller),
+        joinedload(Listing.category)
+    ).get_or_404(listing_id)
     return jsonify(listing.to_dict())
 
 @app.route('/api/listings/<int:listing_id>', methods=['PUT'])
@@ -319,7 +377,14 @@ def api_update_listing(listing_id):
     if 'category_id' in data:
         listing.category_id = data['category_id']
     if 'image_urls' in data:
-        listing.image_urls = data['image_urls']
+        # Remove existing images
+        for image in listing.images:
+            db.session.delete(image)
+        
+        # Add new images
+        for image_url in data['image_urls']:
+            new_image = ListingImage(url=image_url)
+            listing.images.append(new_image)
     if 'address' in data:
         # Geocode the new address
         try:
@@ -327,7 +392,10 @@ def api_update_listing(listing_id):
             if location:
                 listing.latitude = location.latitude
                 listing.longitude = location.longitude
-                listing.location = f'POINT({location.longitude} {location.latitude})'
+                
+                # Update location field only for non-SQLite databases
+                if config.CONFIG["db_engine"] != "sqlite":
+                    listing.location = f'POINT({location.longitude} {location.latitude})'
         except Exception as e:
             return jsonify({'error': f'Geocoding error: {str(e)}'}), 500
     
@@ -362,25 +430,65 @@ def api_nearby_listings():
     if not lat or not lng:
         return jsonify({'error': 'Latitude and longitude are required'}), 400
     
-    # Create a point from the provided coordinates
-    user_location = ST_Point(lng, lat, srid=4326)
+    # Import joinedload for eager loading
+    from sqlalchemy.orm import joinedload
     
-    # Query listings within the radius
-    nearby_listings = db.session.query(
-        Listing,
-        func.ST_Distance(Listing.location, user_location).label('distance')
-    ).filter(
-        ST_DWithin(Listing.location, user_location, radius * 1000)  # Convert km to meters
-    ).order_by('distance').all()
-    
-    # Convert to dict with distance
-    result = []
-    for listing, distance in nearby_listings:
-        listing_dict = listing.to_dict()
-        listing_dict['distance_km'] = round(distance / 1000, 2)  # Convert meters to km
-        result.append(listing_dict)
-    
-    return jsonify(result)
+    # Different implementation based on database engine
+    if config.CONFIG["db_engine"] == "sqlite":
+        # For SQLite, use a simpler approach with the Haversine formula
+        # This is a simplified version that doesn't use spatial functions
+        
+        # Get all listings with eager loading of related entities
+        listings = Listing.query.options(
+            joinedload(Listing.images),
+            joinedload(Listing.seller),
+            joinedload(Listing.category)
+        ).all()
+        
+        # Calculate distances using Python
+        result = []
+        for listing in listings:
+            # Simple distance calculation (approximate)
+            # This is a simplified version of the Haversine formula
+            dx = 111.3 * abs(listing.longitude - lng) * abs(math.cos(math.radians((listing.latitude + lat) / 2)))
+            dy = 111.3 * abs(listing.latitude - lat)
+            distance = math.sqrt(dx * dx + dy * dy)  # Distance in km
+            
+            # Check if within radius
+            if distance <= radius:
+                listing_dict = listing.to_dict()
+                listing_dict['distance_km'] = round(distance, 2)
+                result.append(listing_dict)
+        
+        # Sort by distance
+        result.sort(key=lambda x: x['distance_km'])
+        
+        return jsonify(result)
+    else:
+        # For PostgreSQL and other spatial-enabled databases, use spatial functions
+        # Create a point from the provided coordinates
+        user_location = ST_Point(lng, lat, srid=4326)
+        
+        # Query listings within the radius with eager loading
+        nearby_listings = db.session.query(
+            Listing,
+            func.ST_Distance(Listing.location, user_location).label('distance')
+        ).options(
+            joinedload(Listing.images),
+            joinedload(Listing.seller),
+            joinedload(Listing.category)
+        ).filter(
+            ST_DWithin(Listing.location, user_location, radius * 1000)  # Convert km to meters
+        ).order_by('distance').all()
+        
+        # Convert to dict with distance
+        result = []
+        for listing, distance in nearby_listings:
+            listing_dict = listing.to_dict()
+            listing_dict['distance_km'] = round(distance / 1000, 2)  # Convert meters to km
+            result.append(listing_dict)
+        
+        return jsonify(result)
 
 if __name__ == '__main__':
     port = config.get_port()

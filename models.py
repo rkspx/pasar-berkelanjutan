@@ -1,9 +1,13 @@
 from flask_sqlalchemy import SQLAlchemy
-from sqlalchemy import Column, Integer, String, Float, Boolean, Text, ForeignKey, DateTime, ARRAY
+from sqlalchemy import Column, Integer, String, Float, Boolean, Text, ForeignKey, DateTime
 from sqlalchemy.orm import relationship
 from geoalchemy2 import Geometry
 from datetime import datetime
 from werkzeug.security import generate_password_hash, check_password_hash
+import config
+
+# Determine if we're using SQLite
+IS_SQLITE = config.CONFIG["db_engine"] == "sqlite"
 
 db = SQLAlchemy()
 
@@ -52,15 +56,18 @@ class Listing(db.Model):
     description = Column(Text, nullable=False)
     price = Column(Float, nullable=False)
     quantity = Column(Integer, nullable=False, default=1)
-    image_urls = Column(ARRAY(String), nullable=False)
     latitude = Column(Float, nullable=False)
     longitude = Column(Float, nullable=False)
-    location = Column(Geometry('POINT', srid=4326))
+    # For SQLite, we'll just use the latitude and longitude columns directly
+    # For other databases, we'll use the Geometry column
+    if not IS_SQLITE:
+        location = Column(Geometry('POINT', srid=4326))
     creation_date = Column(DateTime, default=datetime.utcnow)
     
     # Relationships
     seller = relationship("User", back_populates="listings")
     category = relationship("Category", back_populates="listings")
+    images = relationship("ListingImage", back_populates="listing", cascade="all, delete-orphan")
     
     def __repr__(self):
         return f'<Listing {self.title}>'
@@ -76,8 +83,21 @@ class Listing(db.Model):
             'description': self.description,
             'price': self.price,
             'quantity': self.quantity,
-            'image_urls': self.image_urls,
+            'image_urls': [image.url for image in self.images],
             'latitude': self.latitude,
             'longitude': self.longitude,
             'creation_date': self.creation_date.isoformat()
         }
+
+class ListingImage(db.Model):
+    __tablename__ = 'listing_images'
+    
+    image_id = Column(Integer, primary_key=True)
+    listing_id = Column(Integer, ForeignKey('listings.listing_id'), nullable=False)
+    url = Column(String(255), nullable=False)
+    
+    # Relationship
+    listing = relationship("Listing", back_populates="images")
+    
+    def __repr__(self):
+        return f'<ListingImage {self.url}>'
