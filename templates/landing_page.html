@@ -81,50 +81,9 @@
         <h2 class="section-title">Produk Terbaru</h2>
         <p class="section-subtitle">Latest sustainable products from our markets</p>
         
-        <div class="grid grid-4">
-            <div class="card">
-                <img src="https://via.placeholder.com/300x200" alt="Organic Vegetables" class="card-img">
-                <div class="card-content">
-                    <h3 class="card-title">Organic Vegetables</h3>
-                    <p class="card-text">Fresh from local farms</p>
-                    <div class="d-flex justify-between align-center">
-                        <span class="price">Rp 25.000</span>
-                        <a href="/product-detail" class="btn btn-primary">View</a>
-                    </div>
-                </div>
-            </div>
-            <div class="card">
-                <img src="https://via.placeholder.com/300x200" alt="Handmade Soap" class="card-img">
-                <div class="card-content">
-                    <h3 class="card-title">Handmade Soap</h3>
-                    <p class="card-text">Natural ingredients, plastic-free</p>
-                    <div class="d-flex justify-between align-center">
-                        <span class="price">Rp 35.000</span>
-                        <a href="/product-detail" class="btn btn-primary">View</a>
-                    </div>
-                </div>
-            </div>
-            <div class="card">
-                <img src="https://via.placeholder.com/300x200" alt="Bamboo Utensils" class="card-img">
-                <div class="card-content">
-                    <h3 class="card-title">Bamboo Utensils</h3>
-                    <p class="card-text">Sustainable kitchen essentials</p>
-                    <div class="d-flex justify-between align-center">
-                        <span class="price">Rp 45.000</span>
-                        <a href="/product-detail" class="btn btn-primary">View</a>
-                    </div>
-                </div>
-            </div>
-            <div class="card">
-                <img src="https://via.placeholder.com/300x200" alt="Recycled Fabric Bags" class="card-img">
-                <div class="card-content">
-                    <h3 class="card-title">Recycled Fabric Bags</h3>
-                    <p class="card-text">Eco-friendly shopping bags</p>
-                    <div class="d-flex justify-between align-center">
-                        <span class="price">Rp 30.000</span>
-                        <a href="/product-detail" class="btn btn-primary">View</a>
-                    </div>
-                </div>
+        <div class="grid grid-4" id="latest-products">
+            <div class="loading-indicator">
+                <p>Loading latest products...</p>
             </div>
         </div>
     </div>
@@ -177,6 +136,60 @@
     // Initialize Lucide icons
     if (typeof lucide !== 'undefined') {
         lucide.createIcons();
+    }
+    
+    document.addEventListener('DOMContentLoaded', async function() {
+        // Fetch latest products
+        await loadLatestProducts();
+    });
+    
+    async function loadLatestProducts() {
+        const productsContainer = document.getElementById('latest-products');
+        
+        try {
+            // Fetch listings from API
+            const listings = await window.api.getListings();
+            
+            // Clear loading indicator
+            productsContainer.innerHTML = '';
+            
+            // If no listings found, show message
+            if (!listings || listings.length === 0) {
+                productsContainer.innerHTML = '<p class="text-center">No products found.</p>';
+                return;
+            }
+            
+            // Sort by creation date (newest first) and take the first 4
+            const latestListings = listings
+                .sort((a, b) => new Date(b.creation_date) - new Date(a.creation_date))
+                .slice(0, 4);
+            
+            // Create product cards
+            latestListings.forEach(listing => {
+                const imageUrl = listing.image_urls && listing.image_urls.length > 0
+                    ? listing.image_urls[0]
+                    : 'https://via.placeholder.com/300x200';
+                
+                const card = document.createElement('div');
+                card.className = 'card';
+                card.innerHTML = `
+                    <img src="${imageUrl}" alt="${listing.title}" class="card-img">
+                    <div class="card-content">
+                        <h3 class="card-title">${listing.title}</h3>
+                        <p class="card-text">${listing.description.substring(0, 60)}${listing.description.length > 60 ? '...' : ''}</p>
+                        <div class="d-flex justify-between align-center">
+                            <span class="price">Rp ${listing.price.toLocaleString('id-ID')}</span>
+                            <a href="/product-detail?id=${listing.listing_id}" class="btn btn-primary">View</a>
+                        </div>
+                    </div>
+                `;
+                
+                productsContainer.appendChild(card);
+            });
+        } catch (error) {
+            console.error('Error loading latest products:', error);
+            productsContainer.innerHTML = '<p class="text-center">Failed to load products. Please try again later.</p>';
+        }
     }
 </script>
 {% endblock %}

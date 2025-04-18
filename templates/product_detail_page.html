@@ -350,55 +350,242 @@
         lucide.createIcons();
     }
     
-    document.addEventListener('DOMContentLoaded', function() {
-        // Product gallery thumbnail switching
-        const thumbnails = document.querySelectorAll('.thumbnail');
+    // Global variables
+    let currentListing = null;
+    
+    document.addEventListener('DOMContentLoaded', async function() {
+        // Get listing ID from URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const listingId = urlParams.get('id');
+        
+        if (listingId) {
+            // Load product details
+            await loadProductDetails(listingId);
+        } else {
+            // No product ID provided, show error
+            showNotification('No product ID provided', 'error');
+        }
+        
+        // Initialize product gallery thumbnail switching
+        initializeProductGallery();
+        
+        // Initialize quantity controls
+        initializeQuantityControls();
+        
+        // Initialize option selection
+        initializeOptionSelection();
+        
+        // Initialize add to cart button
+        initializeAddToCart(listingId);
+    });
+    
+    async function loadProductDetails(listingId) {
+        try {
+            // Show loading state
+            document.querySelector('.product-info').innerHTML = '<p>Loading product details...</p>';
+            
+            // Fetch listing details from API
+            const listing = await window.api.getListingById(listingId);
+            currentListing = listing;
+            
+            // Update product gallery
+            updateProductGallery(listing);
+            
+            // Update product info
+            updateProductInfo(listing);
+            
+            // Update related products (could be implemented later)
+            // loadRelatedProducts(listing.category_id);
+            
+        } catch (error) {
+            console.error('Error loading product details:', error);
+            document.querySelector('.product-info').innerHTML =
+                '<p class="error">Failed to load product details. Please try again later.</p>';
+        }
+    }
+    
+    function updateProductGallery(listing) {
+        const thumbnailList = document.querySelector('.thumbnail-list');
         const mainImage = document.getElementById('main-product-image');
         
-        thumbnails.forEach(thumbnail => {
-            thumbnail.addEventListener('click', function() {
+        // Clear existing thumbnails
+        thumbnailList.innerHTML = '';
+        
+        // If no images, use placeholder
+        if (!listing.image_urls || listing.image_urls.length === 0) {
+            const placeholderUrl = 'https://via.placeholder.com/600x400';
+            
+            // Add placeholder thumbnail
+            const thumbnail = document.createElement('img');
+            thumbnail.src = placeholderUrl;
+            thumbnail.alt = 'Product thumbnail';
+            thumbnail.className = 'thumbnail active';
+            thumbnail.setAttribute('data-image', placeholderUrl);
+            thumbnailList.appendChild(thumbnail);
+            
+            // Set main image
+            mainImage.src = placeholderUrl;
+            mainImage.alt = listing.title;
+            
+            return;
+        }
+        
+        // Add thumbnails for each image
+        listing.image_urls.forEach((imageUrl, index) => {
+            const thumbnail = document.createElement('img');
+            thumbnail.src = imageUrl;
+            thumbnail.alt = `${listing.title} thumbnail ${index + 1}`;
+            thumbnail.className = 'thumbnail' + (index === 0 ? ' active' : '');
+            thumbnail.setAttribute('data-image', imageUrl);
+            thumbnailList.appendChild(thumbnail);
+        });
+        
+        // Set main image to first image
+        mainImage.src = listing.image_urls[0];
+        mainImage.alt = listing.title;
+    }
+    
+    function updateProductInfo(listing) {
+        const productInfo = document.querySelector('.product-info');
+        
+        // Format price
+        const formattedPrice = listing.price.toLocaleString('id-ID');
+        
+        // Create seller badge
+        const sellerBadge = `
+            <div class="seller-badge">
+                <img src="https://via.placeholder.com/30x30" alt="Seller avatar">
+                <span>${listing.seller_name}</span>
+            </div>
+        `;
+        
+        // Create product info HTML
+        const productInfoHtml = `
+            ${sellerBadge}
+            
+            <h1>${listing.title}</h1>
+            <p>${listing.description}</p>
+            
+            <div class="d-flex justify-between align-center mb-3 mt-4">
+                <span class="price">Rp ${formattedPrice}</span>
+                <span class="stock">Stock: ${listing.quantity} available</span>
+            </div>
+            
+            <div class="mb-3">
+                <h3 class="mb-2">Category</h3>
+                <div class="option-list">
+                    <div class="option-item active">${listing.category_name}</div>
+                </div>
+            </div>
+            
+            <div class="mb-4">
+                <h3 class="mb-2">Quantity</h3>
+                <div class="quantity-control">
+                    <button class="decrease">-</button>
+                    <input type="number" value="1" min="1" max="${listing.quantity}">
+                    <button class="increase">+</button>
+                </div>
+            </div>
+            
+            <button class="btn btn-primary w-100 mb-3" id="add-to-cart-btn">Add to Cart</button>
+            <button class="btn btn-secondary w-100">Buy Now</button>
+            
+            <div class="mt-4">
+                <h3 class="mb-2">Delivery Options</h3>
+                <div class="option-list">
+                    <div class="option-item active">
+                        <i data-lucide="store" class="mr-1"></i> Pasar Pickup
+                    </div>
+                    <div class="option-item">
+                        <i data-lucide="truck" class="mr-1"></i> Kurir Lokal
+                    </div>
+                    <div class="option-item">
+                        <i data-lucide="package" class="mr-1"></i> COD
+                    </div>
+                </div>
+            </div>
+            
+            <div class="mt-3">
+                <h3 class="mb-2">Payment Options</h3>
+                <div class="option-list">
+                    <div class="option-item">GoPay</div>
+                    <div class="option-item">OVO</div>
+                    <div class="option-item active">Bank Transfer</div>
+                </div>
+            </div>
+        `;
+        
+        // Update product info
+        productInfo.innerHTML = productInfoHtml;
+        
+        // Re-initialize Lucide icons
+        if (typeof lucide !== 'undefined') {
+            lucide.createIcons();
+        }
+    }
+    
+    function initializeProductGallery() {
+        // Product gallery thumbnail switching
+        document.addEventListener('click', function(e) {
+            if (e.target && e.target.classList.contains('thumbnail')) {
+                const thumbnails = document.querySelectorAll('.thumbnail');
+                const mainImage = document.getElementById('main-product-image');
+                
                 // Update active thumbnail
                 thumbnails.forEach(t => t.classList.remove('active'));
-                this.classList.add('active');
+                e.target.classList.add('active');
                 
                 // Update main image
-                const imageUrl = this.getAttribute('data-image');
+                const imageUrl = e.target.getAttribute('data-image');
                 mainImage.src = imageUrl;
-            });
-        });
-        
-        // Quantity controls
-        const quantityInput = document.querySelector('.quantity-control input');
-        const decreaseBtn = document.querySelector('.quantity-control .decrease');
-        const increaseBtn = document.querySelector('.quantity-control .increase');
-        
-        decreaseBtn.addEventListener('click', function() {
-            const currentValue = parseInt(quantityInput.value);
-            if (currentValue > parseInt(quantityInput.min)) {
-                quantityInput.value = currentValue - 1;
             }
         });
-        
-        increaseBtn.addEventListener('click', function() {
-            const currentValue = parseInt(quantityInput.value);
-            if (currentValue < parseInt(quantityInput.max)) {
-                quantityInput.value = currentValue + 1;
+    }
+    
+    function initializeQuantityControls() {
+        // Use event delegation for quantity controls
+        document.addEventListener('click', function(e) {
+            if (e.target && e.target.classList.contains('decrease')) {
+                const input = e.target.nextElementSibling;
+                const currentValue = parseInt(input.value);
+                if (currentValue > parseInt(input.min)) {
+                    input.value = currentValue - 1;
+                }
+            } else if (e.target && e.target.classList.contains('increase')) {
+                const input = e.target.previousElementSibling;
+                const currentValue = parseInt(input.value);
+                if (currentValue < parseInt(input.max)) {
+                    input.value = currentValue + 1;
+                }
             }
         });
-        
-        // Option selection
-        const optionItems = document.querySelectorAll('.option-item');
-        
-        optionItems.forEach(item => {
-            item.addEventListener('click', function() {
+    }
+    
+    function initializeOptionSelection() {
+        // Use event delegation for option selection
+        document.addEventListener('click', function(e) {
+            if (e.target && e.target.classList.contains('option-item')) {
                 // Find siblings within the same option list
-                const siblings = this.parentElement.querySelectorAll('.option-item');
+                const siblings = e.target.parentElement.querySelectorAll('.option-item');
                 siblings.forEach(sibling => sibling.classList.remove('active'));
                 
                 // Set this option as active
-                this.classList.add('active');
-            });
+                e.target.classList.add('active');
+            }
         });
-    });
+    }
+    
+    function initializeAddToCart(listingId) {
+        // Use event delegation for add to cart button
+        document.addEventListener('click', function(e) {
+            if (e.target && e.target.id === 'add-to-cart-btn') {
+                const quantityInput = document.querySelector('.quantity-control input');
+                const quantity = parseInt(quantityInput.value);
+                
+                // Add to cart
+                addToCart(listingId, quantity, currentListing);
+            }
+        });
+    }
 </script>
 {% endblock %}

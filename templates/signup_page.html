@@ -223,17 +223,31 @@
         const password = document.getElementById('password');
         const confirmPassword = document.getElementById('confirm-password');
         
-        form.addEventListener('submit', function(e) {
+        form.addEventListener('submit', async function(e) {
             e.preventDefault();
             
             // Check if passwords match
             if (password.value !== confirmPassword.value) {
-                alert('Passwords do not match!');
+                showNotification('Passwords do not match!', 'error');
                 return;
             }
             
-            // In a real app, this would send the form data to the server
-            // For now, we'll just simulate a successful registration
+            // Get form data
+            const firstName = document.getElementById('first-name').value;
+            const lastName = document.getElementById('last-name').value;
+            const email = document.getElementById('email').value;
+            const phone = document.getElementById('phone').value;
+            
+            // Create username from first and last name
+            const username = `${firstName.toLowerCase()}_${lastName.toLowerCase()}`;
+            
+            // Prepare user data
+            const userData = {
+                username: username,
+                email: email,
+                password: password.value,
+                is_seller: false // Default to regular user, can be changed later
+            };
             
             // Show loading state
             const submitButton = form.querySelector('button[type="submit"]');
@@ -241,12 +255,26 @@
             submitButton.textContent = 'Creating account...';
             submitButton.disabled = true;
             
-            // Simulate API call
-            setTimeout(() => {
-                // Redirect to OTP verification page (in a real app)
-                // For now, just redirect to home page
+            try {
+                // Call the API register function
+                const result = await window.api.registerUser(userData);
+                
+                // After successful registration, log the user in
+                await window.api.loginUser(email, password.value);
+                
+                // Show success message
+                showNotification('Account created successfully!');
+                
+                // Redirect to home page
                 window.location.href = '/';
-            }, 1500);
+            } catch (error) {
+                // Show error message
+                showNotification(error.message || 'Registration failed. Please try again.', 'error');
+                
+                // Reset button
+                submitButton.textContent = originalText;
+                submitButton.disabled = false;
+            }
         });
         
         // Password validation
@@ -268,5 +296,29 @@
             });
         });
     });
+    
+    // Show notification function (copied from main.js for consistency)
+    function showNotification(message, type = 'success') {
+        const notification = document.createElement('div');
+        notification.className = `notification notification-${type}`;
+        notification.textContent = message;
+        
+        document.body.appendChild(notification);
+        
+        // Animate in
+        setTimeout(() => {
+            notification.classList.add('active');
+        }, 10);
+        
+        // Remove after delay
+        setTimeout(() => {
+            notification.classList.remove('active');
+            
+            // Remove from DOM after animation completes
+            setTimeout(() => {
+                notification.remove();
+            }, 300);
+        }, 3000);
+    }
 </script>
 {% endblock %}

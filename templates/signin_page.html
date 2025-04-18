@@ -176,11 +176,12 @@
     document.addEventListener('DOMContentLoaded', function() {
         const form = document.querySelector('.auth-form');
         
-        form.addEventListener('submit', function(e) {
+        form.addEventListener('submit', async function(e) {
             e.preventDefault();
             
-            // In a real app, this would send the form data to the server
-            // For now, we'll just simulate a successful login
+            // Get form data
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
             
             // Show loading state
             const submitButton = form.querySelector('button[type="submit"]');
@@ -188,12 +189,48 @@
             submitButton.textContent = 'Signing in...';
             submitButton.disabled = true;
             
-            // Simulate API call
-            setTimeout(() => {
+            try {
+                // Call the API login function
+                const result = await window.api.loginUser(email, password);
+                
+                // Show success message
+                showNotification('Login successful!');
+                
                 // Redirect to home page after successful login
                 window.location.href = '/';
-            }, 1500);
+            } catch (error) {
+                // Show error message
+                showNotification(error.message || 'Login failed. Please check your credentials.', 'error');
+                
+                // Reset button
+                submitButton.textContent = originalText;
+                submitButton.disabled = false;
+            }
         });
     });
+    
+    // Show notification function (copied from main.js for consistency)
+    function showNotification(message, type = 'success') {
+        const notification = document.createElement('div');
+        notification.className = `notification notification-${type}`;
+        notification.textContent = message;
+        
+        document.body.appendChild(notification);
+        
+        // Animate in
+        setTimeout(() => {
+            notification.classList.add('active');
+        }, 10);
+        
+        // Remove after delay
+        setTimeout(() => {
+            notification.classList.remove('active');
+            
+            // Remove from DOM after animation completes
+            setTimeout(() => {
+                notification.remove();
+            }, 300);
+        }, 3000);
+    }
 </script>
 {% endblock %}

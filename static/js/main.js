@@ -9,7 +9,55 @@ document.addEventListener('DOMContentLoaded', function() {
     initializeQuantityControls();
     initializeCarousels();
     initializeFilters();
+    updateAuthUI();
 });
+
+/**
+ * Update UI based on authentication status
+ */
+function updateAuthUI() {
+    const isLoggedIn = window.api.isUserLoggedIn();
+    const currentUser = window.api.getCurrentUser();
+    
+    // Update navigation links
+    const navLinks = document.querySelector('.main-nav ul');
+    if (navLinks) {
+        // Get the sign in link
+        const signInLink = navLinks.querySelector('a[href="/signin"]');
+        
+        if (signInLink && isLoggedIn && currentUser) {
+            // Replace sign in link with user menu
+            const li = signInLink.parentElement;
+            li.innerHTML = `
+                <a href="#" class="user-menu-toggle">${currentUser.username} ${currentUser.is_seller ? '(Seller)' : ''}</a>
+                <ul class="user-dropdown">
+                    <li><a href="/profile">My Profile</a></li>
+                    ${currentUser.is_seller ? '<li><a href="/my-listings">My Listings</a></li>' : ''}
+                    <li><a href="#" id="logout-link">Logout</a></li>
+                </ul>
+            `;
+            
+            // Add event listener for logout
+            document.getElementById('logout-link').addEventListener('click', function(e) {
+                e.preventDefault();
+                logoutUser();
+            });
+        }
+    }
+}
+
+/**
+ * Handle user logout
+ */
+async function logoutUser() {
+    try {
+        await window.api.logoutUser();
+        // Redirect to home page after logout
+        window.location.href = '/';
+    } catch (error) {
+        showNotification('Logout failed: ' + error.message, 'error');
+    }
+}
 
 /**
  * Mobile Navigation Toggle
@@ -130,24 +178,35 @@ function initializeFilters() {
 /**
  * Add to Cart Functionality
  */
-function addToCart(productId, quantity) {
-    // This would typically make an AJAX request to the server
-    // For now, we'll just simulate with localStorage
-    
+function addToCart(productId, quantity, productData = null) {
+    // Get current cart
     let cart = JSON.parse(localStorage.getItem('cart')) || [];
+    const currentUser = window.api.getCurrentUser();
+    const userId = currentUser ? currentUser.user_id : 'guest';
     
     // Check if product already exists in cart
-    const existingProductIndex = cart.findIndex(item => item.id === productId);
+    const existingProductIndex = cart.findIndex(item =>
+        item.id === productId && item.userId === userId
+    );
     
     if (existingProductIndex >= 0) {
         // Update quantity if product already in cart
         cart[existingProductIndex].quantity += quantity;
     } else {
         // Add new product to cart
-        cart.push({
+        const cartItem = {
             id: productId,
-            quantity: quantity
-        });
+            userId: userId,
+            quantity: quantity,
+            dateAdded: new Date().toISOString()
+        };
+        
+        // If product data was provided, store it for offline access
+        if (productData) {
+            cartItem.product = productData;
+        }
+        
+        cart.push(cartItem);
     }
     
     // Save updated cart
@@ -168,7 +227,12 @@ function updateCartCount() {
     
     if (cartCount) {
         const cart = JSON.parse(localStorage.getItem('cart')) || [];
-        const totalItems = cart.reduce((total, item) => total + item.quantity, 0);
+        const currentUser = window.api.getCurrentUser();
+        const userId = currentUser ? currentUser.user_id : 'guest';
+        
+        // Filter cart items by current user
+        const userCart = cart.filter(item => item.userId === userId);
+        const totalItems = userCart.reduce((total, item) => total + item.quantity, 0);
         
         cartCount.textContent = totalItems;
         cartCount.classList.toggle('hidden', totalItems === 0);
