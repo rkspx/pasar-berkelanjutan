@@ -1,0 +1,307 @@
+{% extends 'base.html' %}
+
+{% block title %}Cart Review - Pasar Berkelanjutan Jakarta{% endblock %}
+
+{% block head %}
+<style>
+    .cart-item {
+        display: flex;
+        gap: var(--spacing-md);
+        padding: var(--spacing-md);
+        border-bottom: 1px solid var(--border-light);
+    }
+    
+    .cart-item-image {
+        width: 100px;
+        height: 100px;
+        object-fit: cover;
+        border-radius: var(--border-radius-md);
+    }
+    
+    .cart-item-details {
+        flex: 1;
+    }
+    
+    .cart-item-price {
+        font-weight: 700;
+        color: var(--primary-green);
+    }
+    
+    .cart-summary {
+        background-color: var(--off-white);
+        border-radius: var(--border-radius-md);
+        padding: var(--spacing-lg);
+    }
+    
+    .summary-row {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: var(--spacing-sm);
+    }
+    
+    .summary-total {
+        font-size: 1.25rem;
+        font-weight: 700;
+        padding-top: var(--spacing-sm);
+        margin-top: var(--spacing-sm);
+        border-top: 1px solid var(--border-light);
+    }
+    
+    .promo-code {
+        display: flex;
+        gap: var(--spacing-sm);
+        margin-bottom: var(--spacing-lg);
+    }
+    
+    .promo-code input {
+        flex: 1;
+    }
+    
+    .quantity-control {
+        display: flex;
+        align-items: center;
+        max-width: 120px;
+    }
+    
+    .quantity-control button {
+        width: 30px;
+        height: 30px;
+        border: 1px solid var(--border-light);
+        background-color: var(--white);
+        font-size: 1rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+    }
+    
+    .quantity-control input {
+        width: 40px;
+        height: 30px;
+        border-top: 1px solid var(--border-light);
+        border-bottom: 1px solid var(--border-light);
+        border-left: none;
+        border-right: none;
+        text-align: center;
+        font-size: 0.875rem;
+    }
+    
+    .quantity-control .decrease {
+        border-radius: var(--border-radius-md) 0 0 var(--border-radius-md);
+    }
+    
+    .quantity-control .increase {
+        border-radius: 0 var(--border-radius-md) var(--border-radius-md) 0;
+    }
+    
+    .remove-item {
+        color: var(--text-light);
+        background: none;
+        border: none;
+        cursor: pointer;
+        font-size: 0.875rem;
+        display: flex;
+        align-items: center;
+        gap: var(--spacing-xs);
+    }
+    
+    .remove-item:hover {
+        color: var(--terracotta);
+    }
+    
+    @media (max-width: 768px) {
+        .cart-layout {
+            flex-direction: column;
+        }
+        
+        .cart-items {
+            margin-bottom: var(--spacing-lg);
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<section class="section">
+    <div class="container">
+        <h1 class="section-title">Your Cart</h1>
+        
+        <div class="d-flex gap-3 cart-layout">
+            <div class="cart-items" style="width: 65%;">
+                <div class="cart-item">
+                    <img src="https://via.placeholder.com/100x100" alt="Organic Vegetable Bundle" class="cart-item-image">
+                    <div class="cart-item-details">
+                        <div class="d-flex justify-between">
+                            <h3>Organic Vegetable Bundle</h3>
+                            <span class="cart-item-price">Rp 75.000</span>
+                        </div>
+                        <p class="mb-2">Medium size</p>
+                        <div class="d-flex justify-between align-center">
+                            <div class="quantity-control">
+                                <button class="decrease">-</button>
+                                <input type="number" value="1" min="1" max="15">
+                                <button class="increase">+</button>
+                            </div>
+                            <button class="remove-item">
+                                <i data-lucide="trash-2" width="16" height="16"></i> Remove
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="cart-item">
+                    <img src="https://via.placeholder.com/100x100" alt="Handmade Soap" class="cart-item-image">
+                    <div class="cart-item-details">
+                        <div class="d-flex justify-between">
+                            <h3>Handmade Soap</h3>
+                            <span class="cart-item-price">Rp 35.000</span>
+                        </div>
+                        <p class="mb-2">Lavender scent</p>
+                        <div class="d-flex justify-between align-center">
+                            <div class="quantity-control">
+                                <button class="decrease">-</button>
+                                <input type="number" value="2" min="1" max="10">
+                                <button class="increase">+</button>
+                            </div>
+                            <button class="remove-item">
+                                <i data-lucide="trash-2" width="16" height="16"></i> Remove
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="cart-item">
+                    <img src="https://via.placeholder.com/100x100" alt="Bamboo Utensils" class="cart-item-image">
+                    <div class="cart-item-details">
+                        <div class="d-flex justify-between">
+                            <h3>Bamboo Utensils</h3>
+                            <span class="cart-item-price">Rp 45.000</span>
+                        </div>
+                        <p class="mb-2">Set of 4</p>
+                        <div class="d-flex justify-between align-center">
+                            <div class="quantity-control">
+                                <button class="decrease">-</button>
+                                <input type="number" value="1" min="1" max="5">
+                                <button class="increase">+</button>
+                            </div>
+                            <button class="remove-item">
+                                <i data-lucide="trash-2" width="16" height="16"></i> Remove
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="cart-summary-container" style="width: 35%;">
+                <div class="cart-summary">
+                    <h2 class="mb-3">Order Summary</h2>
+                    
+                    <div class="promo-code">
+                        <input type="text" placeholder="Promo Code">
+                        <button class="btn btn-secondary">Apply</button>
+                    </div>
+                    
+                    <div class="summary-row">
+                        <span>Subtotal</span>
+                        <span>Rp 190.000</span>
+                    </div>
+                    <div class="summary-row">
+                        <span>Shipping</span>
+                        <span>Rp 15.000</span>
+                    </div>
+                    <div class="summary-row">
+                        <span>Tax</span>
+                        <span>Rp 19.000</span>
+                    </div>
+                    <div class="summary-row summary-total">
+                        <span>Total</span>
+                        <span>Rp 224.000</span>
+                    </div>
+                    
+                    <a href="/checkout" class="btn btn-primary w-100 mt-3">Proceed to Checkout</a>
+                    <a href="/market-discovery" class="btn btn-secondary w-100 mt-2">Continue Shopping</a>
+                </div>
+                
+                <div class="mt-4">
+                    <h3 class="mb-2">Accepted Payment Methods</h3>
+                    <div class="d-flex gap-2 flex-wrap">
+                        <div class="payment-method p-2" style="background-color: var(--off-white); border-radius: var(--border-radius-sm);">
+                            GoPay
+                        </div>
+                        <div class="payment-method p-2" style="background-color: var(--off-white); border-radius: var(--border-radius-sm);">
+                            OVO
+                        </div>
+                        <div class="payment-method p-2" style="background-color: var(--off-white); border-radius: var(--border-radius-sm);">
+                            Bank Transfer
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Initialize Lucide icons
+    if (typeof lucide !== 'undefined') {
+        lucide.createIcons();
+    }
+    
+    document.addEventListener('DOMContentLoaded', function() {
+        // Quantity controls
+        const quantityControls = document.querySelectorAll('.quantity-control');
+        
+        quantityControls.forEach(control => {
+            const input = control.querySelector('input');
+            const decreaseBtn = control.querySelector('.decrease');
+            const increaseBtn = control.querySelector('.increase');
+            
+            decreaseBtn.addEventListener('click', function() {
+                const currentValue = parseInt(input.value);
+                if (currentValue > parseInt(input.min)) {
+                    input.value = currentValue - 1;
+                    updateCartTotals();
+                }
+            });
+            
+            increaseBtn.addEventListener('click', function() {
+                const currentValue = parseInt(input.value);
+                if (currentValue < parseInt(input.max)) {
+                    input.value = currentValue + 1;
+                    updateCartTotals();
+                }
+            });
+            
+            input.addEventListener('change', updateCartTotals);
+        });
+        
+        // Remove item buttons
+        const removeButtons = document.querySelectorAll('.remove-item');
+        
+        removeButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                const cartItem = this.closest('.cart-item');
+                cartItem.style.opacity = '0';
+                setTimeout(() => {
+                    cartItem.remove();
+                    updateCartTotals();
+                    
+                    // Check if cart is empty
+                    const remainingItems = document.querySelectorAll('.cart-item');
+                    if (remainingItems.length === 0) {
+                        window.location.href = '/empty-cart';
+                    }
+                }, 300);
+            });
+        });
+        
+        // Update cart totals (this would be more sophisticated in a real app)
+        function updateCartTotals() {
+            // This is a simplified example - in a real app, you would recalculate based on actual quantities and prices
+            console.log('Cart totals updated');
+        }
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,289 @@
+{% extends 'base.html' %}
+
+{% block title %}Order Confirmation - Pasar Berkelanjutan Jakarta{% endblock %}
+
+{% block head %}
+<style>
+    .confirmation-container {
+        max-width: 800px;
+        margin: 0 auto;
+    }
+    
+    .confirmation-header {
+        text-align: center;
+        margin-bottom: var(--spacing-xl);
+    }
+    
+    .confirmation-icon {
+        width: 80px;
+        height: 80px;
+        background-color: rgba(51, 86, 51, 0.1);
+        color: var(--primary-green);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto var(--spacing-md);
+    }
+    
+    .order-details {
+        background-color: var(--white);
+        border-radius: var(--border-radius-md);
+        padding: var(--spacing-lg);
+        margin-bottom: var(--spacing-lg);
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    }
+    
+    .order-details-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding-bottom: var(--spacing-md);
+        margin-bottom: var(--spacing-md);
+        border-bottom: 1px solid var(--border-light);
+    }
+    
+    .order-number {
+        font-weight: 700;
+    }
+    
+    .order-date {
+        color: var(--text-light);
+    }
+    
+    .order-summary {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: var(--spacing-lg);
+        margin-bottom: var(--spacing-lg);
+    }
+    
+    .summary-item h3 {
+        font-size: 1rem;
+        color: var(--text-light);
+        margin-bottom: var(--spacing-xs);
+    }
+    
+    .summary-item p {
+        font-weight: 500;
+    }
+    
+    .order-items {
+        margin-top: var(--spacing-lg);
+    }
+    
+    .order-item {
+        display: flex;
+        gap: var(--spacing-md);
+        padding-bottom: var(--spacing-md);
+        margin-bottom: var(--spacing-md);
+        border-bottom: 1px solid var(--border-light);
+    }
+    
+    .order-item:last-child {
+        border-bottom: none;
+        margin-bottom: 0;
+        padding-bottom: 0;
+    }
+    
+    .order-item-image {
+        width: 80px;
+        height: 80px;
+        object-fit: cover;
+        border-radius: var(--border-radius-sm);
+    }
+    
+    .order-item-details {
+        flex: 1;
+    }
+    
+    .order-item-price {
+        font-weight: 700;
+    }
+    
+    .order-total {
+        display: flex;
+        justify-content: space-between;
+        padding-top: var(--spacing-md);
+        margin-top: var(--spacing-md);
+        border-top: 1px solid var(--border-light);
+        font-weight: 700;
+        font-size: 1.1rem;
+    }
+    
+    .delivery-info {
+        background-color: var(--white);
+        border-radius: var(--border-radius-md);
+        padding: var(--spacing-lg);
+        margin-bottom: var(--spacing-lg);
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    }
+    
+    .delivery-method {
+        display: flex;
+        align-items: center;
+        gap: var(--spacing-md);
+        padding-bottom: var(--spacing-md);
+        margin-bottom: var(--spacing-md);
+        border-bottom: 1px solid var(--border-light);
+    }
+    
+    .delivery-icon {
+        width: 50px;
+        height: 50px;
+        background-color: var(--off-white);
+        border-radius: var(--border-radius-md);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    .delivery-address {
+        margin-top: var(--spacing-md);
+    }
+    
+    .action-buttons {
+        display: flex;
+        gap: var(--spacing-md);
+        margin-top: var(--spacing-xl);
+    }
+    
+    @media (max-width: 768px) {
+        .action-buttons {
+            flex-direction: column;
+            gap: var(--spacing-sm);
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<section class="section">
+    <div class="container">
+        <div class="confirmation-container">
+            <div class="confirmation-header">
+                <div class="confirmation-icon">
+                    <i data-lucide="check" width="40" height="40"></i>
+                </div>
+                <h1>Pesanan Berhasil!</h1>
+                <p>Terima kasih telah berbelanja di Pasar Berkelanjutan Jakarta. Berikut adalah detail pesanan Anda.</p>
+            </div>
+            
+            <div class="order-details">
+                <div class="order-details-header">
+                    <div class="order-number">Order #PB12345678</div>
+                    <div class="order-date">17 April 2025, 13:45</div>
+                </div>
+                
+                <div class="order-summary">
+                    <div class="summary-item">
+                        <h3>Status Pesanan</h3>
+                        <p>Menunggu Pembayaran</p>
+                    </div>
+                    <div class="summary-item">
+                        <h3>Metode Pembayaran</h3>
+                        <p>Bank Transfer</p>
+                    </div>
+                    <div class="summary-item">
+                        <h3>Estimasi Pengiriman</h3>
+                        <p>18 April 2025</p>
+                    </div>
+                </div>
+                
+                <div class="order-items">
+                    <h2 class="mb-3">Item Pesanan</h2>
+                    
+                    <div class="order-item">
+                        <img src="https://via.placeholder.com/80x80" alt="Organic Vegetable Bundle" class="order-item-image">
+                        <div class="order-item-details">
+                            <h3>Organic Vegetable Bundle</h3>
+                            <p>Medium size</p>
+                            <div class="d-flex justify-between">
+                                <span>Qty: 1</span>
+                                <span class="order-item-price">Rp 75.000</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="order-item">
+                        <img src="https://via.placeholder.com/80x80" alt="Handmade Soap" class="order-item-image">
+                        <div class="order-item-details">
+                            <h3>Handmade Soap</h3>
+                            <p>Lavender scent</p>
+                            <div class="d-flex justify-between">
+                                <span>Qty: 2</span>
+                                <span class="order-item-price">Rp 70.000</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="order-item">
+                        <img src="https://via.placeholder.com/80x80" alt="Bamboo Utensils" class="order-item-image">
+                        <div class="order-item-details">
+                            <h3>Bamboo Utensils</h3>
+                            <p>Set of 4</p>
+                            <div class="d-flex justify-between">
+                                <span>Qty: 1</span>
+                                <span class="order-item-price">Rp 45.000</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="order-total">
+                        <span>Total</span>
+                        <span>Rp 190.000</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="delivery-info">
+                <h2 class="mb-3">Informasi Pengiriman</h2>
+                
+                <div class="delivery-method">
+                    <div class="delivery-icon">
+                        <i data-lucide="truck" width="24" height="24"></i>
+                    </div>
+                    <div>
+                        <h3>Kurir Lokal</h3>
+                        <p>Estimasi pengiriman: 18 April 2025</p>
+                    </div>
+                </div>
+                
+                <div class="delivery-address">
+                    <h3 class="mb-2">Alamat Pengiriman</h3>
+                    <p>Budi Santoso</p>
+                    <p>Jl. Kemang Raya No. 15</p>
+                    <p>Kelurahan Bangka, Kecamatan Mampang Prapatan</p>
+                    <p>Jakarta Selatan, 12730</p>
+                    <p>Phone: +62 812-3456-7890</p>
+                </div>
+            </div>
+            
+            <div class="payment-info order-details">
+                <h2 class="mb-3">Instruksi Pembayaran</h2>
+                <p>Silakan transfer ke rekening berikut:</p>
+                <p><strong>Bank:</strong> Bank Mandiri</p>
+                <p><strong>Nomor Rekening:</strong> 123-456-7890</p>
+                <p><strong>Atas Nama:</strong> PT Pasar Berkelanjutan</p>
+                <p><strong>Jumlah:</strong> Rp 190.000</p>
+                <p class="mt-2">Harap selesaikan pembayaran dalam 24 jam untuk memproses pesanan Anda.</p>
+            </div>
+            
+            <div class="action-buttons">
+                <a href="/" class="btn btn-primary">Kembali ke Beranda</a>
+                <a href="#" class="btn btn-secondary">Lihat Status Pesanan</a>
+                <a href="#" class="btn btn-secondary">Hubungi Kami</a>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Initialize Lucide icons
+    if (typeof lucide !== 'undefined') {
+        lucide.createIcons();
+    }
+</script>
+{% endblock %}

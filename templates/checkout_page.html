@@ -1,0 +1,451 @@
+{% extends 'base.html' %}
+
+{% block title %}Checkout - Pasar Berkelanjutan Jakarta{% endblock %}
+
+{% block head %}
+<style>
+    .checkout-section {
+        background-color: var(--white);
+        border-radius: var(--border-radius-md);
+        padding: var(--spacing-lg);
+        margin-bottom: var(--spacing-lg);
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    }
+    
+    .checkout-section-title {
+        display: flex;
+        align-items: center;
+        gap: var(--spacing-sm);
+        margin-bottom: var(--spacing-md);
+        padding-bottom: var(--spacing-sm);
+        border-bottom: 1px solid var(--border-light);
+    }
+    
+    .checkout-section-title .number {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 30px;
+        height: 30px;
+        background-color: var(--primary-green);
+        color: var(--white);
+        border-radius: 50%;
+        font-weight: 700;
+    }
+    
+    .address-card {
+        border: 1px solid var(--border-light);
+        border-radius: var(--border-radius-md);
+        padding: var(--spacing-md);
+        margin-bottom: var(--spacing-md);
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+    
+    .address-card:hover {
+        border-color: var(--primary-green);
+    }
+    
+    .address-card.selected {
+        border-color: var(--primary-green);
+        background-color: rgba(51, 86, 51, 0.05);
+    }
+    
+    .address-card-header {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: var(--spacing-sm);
+    }
+    
+    .address-type {
+        display: inline-block;
+        padding: var(--spacing-xs) var(--spacing-sm);
+        background-color: var(--off-white);
+        border-radius: var(--border-radius-sm);
+        font-size: 0.75rem;
+        font-weight: 500;
+    }
+    
+    .delivery-option {
+        display: flex;
+        align-items: center;
+        gap: var(--spacing-md);
+        padding: var(--spacing-md);
+        border: 1px solid var(--border-light);
+        border-radius: var(--border-radius-md);
+        margin-bottom: var(--spacing-md);
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+    
+    .delivery-option:hover {
+        border-color: var(--primary-green);
+    }
+    
+    .delivery-option.selected {
+        border-color: var(--primary-green);
+        background-color: rgba(51, 86, 51, 0.05);
+    }
+    
+    .delivery-option-icon {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 50px;
+        height: 50px;
+        background-color: var(--off-white);
+        border-radius: var(--border-radius-md);
+    }
+    
+    .delivery-option-details {
+        flex: 1;
+    }
+    
+    .payment-option {
+        display: flex;
+        align-items: center;
+        gap: var(--spacing-md);
+        padding: var(--spacing-md);
+        border: 1px solid var(--border-light);
+        border-radius: var(--border-radius-md);
+        margin-bottom: var(--spacing-md);
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+    
+    .payment-option:hover {
+        border-color: var(--primary-green);
+    }
+    
+    .payment-option.selected {
+        border-color: var(--primary-green);
+        background-color: rgba(51, 86, 51, 0.05);
+    }
+    
+    .payment-option-icon {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 50px;
+        height: 50px;
+        background-color: var(--off-white);
+        border-radius: var(--border-radius-md);
+    }
+    
+    .payment-option-details {
+        flex: 1;
+    }
+    
+    .order-summary {
+        background-color: var(--off-white);
+        border-radius: var(--border-radius-md);
+        padding: var(--spacing-lg);
+        position: sticky;
+        top: calc(var(--spacing-xxl) + 60px);
+    }
+    
+    .summary-row {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: var(--spacing-sm);
+    }
+    
+    .summary-total {
+        font-size: 1.25rem;
+        font-weight: 700;
+        padding-top: var(--spacing-sm);
+        margin-top: var(--spacing-sm);
+        border-top: 1px solid var(--border-light);
+    }
+    
+    .order-items {
+        margin-top: var(--spacing-md);
+        margin-bottom: var(--spacing-md);
+    }
+    
+    .order-item {
+        display: flex;
+        gap: var(--spacing-md);
+        padding-bottom: var(--spacing-sm);
+        margin-bottom: var(--spacing-sm);
+        border-bottom: 1px solid var(--border-light);
+    }
+    
+    .order-item:last-child {
+        border-bottom: none;
+    }
+    
+    .order-item-image {
+        width: 60px;
+        height: 60px;
+        object-fit: cover;
+        border-radius: var(--border-radius-sm);
+    }
+    
+    .order-item-details {
+        flex: 1;
+    }
+    
+    @media (max-width: 768px) {
+        .checkout-layout {
+            flex-direction: column;
+        }
+        
+        .checkout-main {
+            margin-bottom: var(--spacing-lg);
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<section class="section">
+    <div class="container">
+        <h1 class="section-title">Checkout</h1>
+        
+        <div class="d-flex gap-3 checkout-layout">
+            <div class="checkout-main" style="width: 65%;">
+                <div class="checkout-section">
+                    <div class="checkout-section-title">
+                        <span class="number">1</span>
+                        <h2>Shipping Address</h2>
+                    </div>
+                    
+                    <div class="address-card selected">
+                        <div class="address-card-header">
+                            <h3>Rumah</h3>
+                            <span class="address-type">Default</span>
+                        </div>
+                        <p>Budi Santoso</p>
+                        <p>Jl. Kemang Raya No. 15</p>
+                        <p>Kelurahan Bangka, Kecamatan Mampang Prapatan</p>
+                        <p>Jakarta Selatan, 12730</p>
+                        <p>Phone: +62 812-3456-7890</p>
+                    </div>
+                    
+                    <div class="address-card">
+                        <div class="address-card-header">
+                            <h3>Kantor</h3>
+                            <span class="address-type">Work</span>
+                        </div>
+                        <p>Budi Santoso</p>
+                        <p>Menara Sudirman, Lt. 5</p>
+                        <p>Jl. Jend. Sudirman Kav. 60</p>
+                        <p>Jakarta Selatan, 12190</p>
+                        <p>Phone: +62 812-3456-7890</p>
+                    </div>
+                    
+                    <button class="btn btn-secondary mt-2">
+                        <i data-lucide="plus" width="16" height="16"></i> Add New Address
+                    </button>
+                </div>
+                
+                <div class="checkout-section">
+                    <div class="checkout-section-title">
+                        <span class="number">2</span>
+                        <h2>Delivery Method</h2>
+                    </div>
+                    
+                    <div class="delivery-option selected">
+                        <div class="delivery-option-icon">
+                            <i data-lucide="store" width="24" height="24"></i>
+                        </div>
+                        <div class="delivery-option-details">
+                            <h3>Pasar Pickup</h3>
+                            <p>Pick up your order directly from the market</p>
+                        </div>
+                        <div class="delivery-option-price">
+                            Free
+                        </div>
+                    </div>
+                    
+                    <div class="delivery-option">
+                        <div class="delivery-option-icon">
+                            <i data-lucide="truck" width="24" height="24"></i>
+                        </div>
+                        <div class="delivery-option-details">
+                            <h3>Kurir Lokal</h3>
+                            <p>Delivery by local courier within 24 hours</p>
+                        </div>
+                        <div class="delivery-option-price">
+                            Rp 15.000
+                        </div>
+                    </div>
+                    
+                    <div class="delivery-option">
+                        <div class="delivery-option-icon">
+                            <i data-lucide="package" width="24" height="24"></i>
+                        </div>
+                        <div class="delivery-option-details">
+                            <h3>COD (Cash on Delivery)</h3>
+                            <p>Pay when you receive your order</p>
+                        </div>
+                        <div class="delivery-option-price">
+                            Rp 20.000
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="checkout-section">
+                    <div class="checkout-section-title">
+                        <span class="number">3</span>
+                        <h2>Payment Method</h2>
+                    </div>
+                    
+                    <div class="payment-option selected">
+                        <div class="payment-option-icon">
+                            <i data-lucide="credit-card" width="24" height="24"></i>
+                        </div>
+                        <div class="payment-option-details">
+                            <h3>Bank Transfer</h3>
+                            <p>Pay via bank transfer to our account</p>
+                        </div>
+                    </div>
+                    
+                    <div class="payment-option">
+                        <div class="payment-option-icon">
+                            <i data-lucide="smartphone" width="24" height="24"></i>
+                        </div>
+                        <div class="payment-option-details">
+                            <h3>GoPay</h3>
+                            <p>Pay using your GoPay account</p>
+                        </div>
+                    </div>
+                    
+                    <div class="payment-option">
+                        <div class="payment-option-icon">
+                            <i data-lucide="smartphone" width="24" height="24"></i>
+                        </div>
+                        <div class="payment-option-details">
+                            <h3>OVO</h3>
+                            <p>Pay using your OVO account</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="checkout-sidebar" style="width: 35%;">
+                <div class="order-summary">
+                    <h2 class="mb-3">Order Summary</h2>
+                    
+                    <div class="order-items">
+                        <div class="order-item">
+                            <img src="https://via.placeholder.com/60x60" alt="Organic Vegetable Bundle" class="order-item-image">
+                            <div class="order-item-details">
+                                <h4>Organic Vegetable Bundle</h4>
+                                <p>Quantity: 1</p>
+                                <p class="price">Rp 75.000</p>
+                            </div>
+                        </div>
+                        
+                        <div class="order-item">
+                            <img src="https://via.placeholder.com/60x60" alt="Handmade Soap" class="order-item-image">
+                            <div class="order-item-details">
+                                <h4>Handmade Soap</h4>
+                                <p>Quantity: 2</p>
+                                <p class="price">Rp 70.000</p>
+                            </div>
+                        </div>
+                        
+                        <div class="order-item">
+                            <img src="https://via.placeholder.com/60x60" alt="Bamboo Utensils" class="order-item-image">
+                            <div class="order-item-details">
+                                <h4>Bamboo Utensils</h4>
+                                <p>Quantity: 1</p>
+                                <p class="price">Rp 45.000</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="summary-row">
+                        <span>Subtotal</span>
+                        <span>Rp 190.000</span>
+                    </div>
+                    <div class="summary-row">
+                        <span>Shipping</span>
+                        <span>Free</span>
+                    </div>
+                    <div class="summary-row">
+                        <span>Tax</span>
+                        <span>Rp 19.000</span>
+                    </div>
+                    <div class="summary-row summary-total">
+                        <span>Total</span>
+                        <span>Rp 209.000</span>
+                    </div>
+                    
+                    <a href="/order-confirmation" class="btn btn-primary w-100 mt-3">Place Order</a>
+                    <a href="/cart-review" class="btn btn-secondary w-100 mt-2">Back to Cart</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Initialize Lucide icons
+    if (typeof lucide !== 'undefined') {
+        lucide.createIcons();
+    }
+    
+    document.addEventListener('DOMContentLoaded', function() {
+        // Address card selection
+        const addressCards = document.querySelectorAll('.address-card');
+        
+        addressCards.forEach(card => {
+            card.addEventListener('click', function() {
+                addressCards.forEach(c => c.classList.remove('selected'));
+                this.classList.add('selected');
+            });
+        });
+        
+        // Delivery option selection
+        const deliveryOptions = document.querySelectorAll('.delivery-option');
+        
+        deliveryOptions.forEach(option => {
+            option.addEventListener('click', function() {
+                deliveryOptions.forEach(o => o.classList.remove('selected'));
+                this.classList.add('selected');
+                
+                // Update shipping cost in summary
+                const shippingCost = this.querySelector('.delivery-option-price').textContent;
+                document.querySelector('.summary-row:nth-child(2) span:last-child').textContent = shippingCost;
+                
+                // Recalculate total
+                updateTotal();
+            });
+        });
+        
+        // Payment option selection
+        const paymentOptions = document.querySelectorAll('.payment-option');
+        
+        paymentOptions.forEach(option => {
+            option.addEventListener('click', function() {
+                paymentOptions.forEach(o => o.classList.remove('selected'));
+                this.classList.add('selected');
+            });
+        });
+        
+        // Update total based on shipping cost
+        function updateTotal() {
+            const subtotal = 190000; // Rp 190.000 in cents
+            const tax = 19000; // Rp 19.000 in cents
+            
+            let shipping = 0;
+            const shippingText = document.querySelector('.summary-row:nth-child(2) span:last-child').textContent;
+            
+            if (shippingText !== 'Free') {
+                shipping = parseInt(shippingText.replace(/\D/g, ''));
+            }
+            
+            const total = subtotal + shipping + tax;
+            
+            // Format as currency
+            document.querySelector('.summary-row.summary-total span:last-child').textContent = 
+                `Rp ${(total / 1000).toLocaleString('id-ID', { minimumFractionDigits: 3 }).replace(',', '.')}`;
+        }
+    });
+</script>
+{% endblock %}

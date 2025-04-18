@@ -1,0 +1,72 @@
+{% extends 'base.html' %}
+
+{% block title %}Empty Cart - Pasar Berkelanjutan Jakarta{% endblock %}
+
+{% block head %}
+<style>
+    .message-container {
+        max-width: 600px;
+        margin: 0 auto;
+        padding: var(--spacing-xl);
+        text-align: center;
+    }
+    
+    .message-icon {
+        font-size: 5rem;
+        color: var(--text-light);
+        margin-bottom: var(--spacing-lg);
+    }
+    
+    .message-title {
+        font-size: 2rem;
+        margin-bottom: var(--spacing-md);
+    }
+    
+    .message-text {
+        color: var(--text-light);
+        margin-bottom: var(--spacing-xl);
+    }
+    
+    .action-buttons {
+        display: flex;
+        justify-content: center;
+        gap: var(--spacing-md);
+    }
+    
+    @media (max-width: 768px) {
+        .action-buttons {
+            flex-direction: column;
+            gap: var(--spacing-sm);
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<section class="section">
+    <div class="container">
+        <div class="message-container">
+            <div class="message-icon">
+                <i data-lucide="shopping-cart" width="80" height="80"></i>
+            </div>
+            
+            <h1 class="message-title">Keranjang Anda Kosong</h1>
+            <p class="message-text">Anda belum menambahkan produk apapun ke keranjang belanja. Jelajahi pasar kami untuk menemukan produk berkelanjutan yang Anda butuhkan.</p>
+            
+            <div class="action-buttons">
+                <a href="/" class="btn btn-primary">Kembali ke Beranda</a>
+                <a href="/market-discovery" class="btn btn-secondary">Jelajahi Pasar</a>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Initialize Lucide icons
+    if (typeof lucide !== 'undefined') {
+        lucide.createIcons();
+    }
+</script>
+{% endblock %}

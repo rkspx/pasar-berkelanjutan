@@ -1,0 +1,127 @@
+{% extends 'base.html' %}
+
+{% block title %}Page Not Found - Pasar Berkelanjutan Jakarta{% endblock %}
+
+{% block head %}
+<style>
+    .error-container {
+        max-width: 600px;
+        margin: 0 auto;
+        padding: var(--spacing-xl);
+        text-align: center;
+    }
+    
+    .error-illustration {
+        max-width: 300px;
+        margin: 0 auto var(--spacing-lg);
+    }
+    
+    .error-code {
+        font-size: 6rem;
+        font-weight: 700;
+        color: var(--primary-green);
+        line-height: 1;
+        margin-bottom: var(--spacing-md);
+    }
+    
+    .error-title {
+        font-size: 2rem;
+        margin-bottom: var(--spacing-md);
+    }
+    
+    .error-text {
+        color: var(--text-light);
+        margin-bottom: var(--spacing-xl);
+    }
+    
+    .search-container {
+        max-width: 500px;
+        margin: 0 auto var(--spacing-xl);
+    }
+    
+    .search-bar {
+        display: flex;
+        gap: var(--spacing-sm);
+    }
+    
+    .search-bar input {
+        flex: 1;
+    }
+    
+    .action-buttons {
+        display: flex;
+        justify-content: center;
+        gap: var(--spacing-md);
+    }
+    
+    .helpful-links {
+        margin-top: var(--spacing-xl);
+    }
+    
+    .helpful-links h3 {
+        margin-bottom: var(--spacing-md);
+    }
+    
+    .helpful-links-list {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: var(--spacing-md);
+    }
+    
+    @media (max-width: 768px) {
+        .action-buttons {
+            flex-direction: column;
+            gap: var(--spacing-sm);
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<section class="section">
+    <div class="container">
+        <div class="error-container">
+            <div class="error-illustration">
+                <!-- Placeholder for a local illustration -->
+                <img src="https://via.placeholder.com/300x200" alt="404 Illustration" width="300">
+            </div>
+            
+            <div class="error-code">404</div>
+            <h1 class="error-title">Halaman Tidak Ditemukan</h1>
+            <p class="error-text">Maaf, halaman yang Anda cari tidak dapat ditemukan. Halaman mungkin telah dipindahkan, dihapus, atau URL yang Anda masukkan salah.</p>
+            
+            <div class="search-container">
+                <div class="search-bar">
+                    <input type="text" placeholder="Cari pasar atau produk" aria-label="Search">
+                    <button class="btn btn-primary">Cari</button>
+                </div>
+            </div>
+            
+            <div class="action-buttons">
+                <a href="/" class="btn btn-primary">Kembali ke Beranda</a>
+                <a href="/market-discovery" class="btn btn-secondary">Jelajahi Pasar</a>
+            </div>
+            
+            <div class="helpful-links">
+                <h3>Tautan yang Mungkin Membantu</h3>
+                <div class="helpful-links-list">
+                    <a href="/">Beranda</a>
+                    <a href="/market-discovery">Temukan Pasar</a>
+                    <a href="/cart-review">Keranjang Belanja</a>
+                    <a href="/signin">Masuk</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Initialize Lucide icons
+    if (typeof lucide !== 'undefined') {
+        lucide.createIcons();
+    }
+</script>
+{% endblock %}

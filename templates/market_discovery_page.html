@@ -1,0 +1,596 @@
+{% extends 'base.html' %}
+
+{% block title %}Market Discovery - Pasar Berkelanjutan Jakarta{% endblock %}
+
+{% block head %}
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.3/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet@1.9.3/dist/leaflet.js"></script>
+<link rel="stylesheet" href="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.css" />
+<script src="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.js"></script>
+<style>
+    #jakarta-map {
+        height: 500px;
+        border-radius: var(--border-radius-md);
+    }
+    
+    .filter-sidebar {
+        background-color: var(--white);
+        border-radius: var(--border-radius-md);
+        padding: var(--spacing-md);
+    }
+    
+    .filter-group {
+        margin-bottom: var(--spacing-lg);
+    }
+    
+    .filter-group h3 {
+        margin-bottom: var(--spacing-sm);
+        font-size: 1.1rem;
+    }
+    
+    .filter-options {
+        display: flex;
+        flex-direction: column;
+        gap: var(--spacing-xs);
+    }
+    
+    .filter-option {
+        display: flex;
+        align-items: center;
+        gap: var(--spacing-sm);
+    }
+    
+    .filter-option input[type="checkbox"] {
+        width: auto;
+    }
+    
+    .mobile-filter-toggle {
+        display: none;
+    }
+    
+    @media (max-width: 768px) {
+        .page-layout {
+            flex-direction: column;
+        }
+        
+        .filter-sidebar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 80%;
+            height: 100%;
+            z-index: 1000;
+            transform: translateX(-100%);
+            transition: transform 0.3s ease;
+            overflow-y: auto;
+        }
+        
+        .filter-sidebar.active {
+            transform: translateX(0);
+        }
+        
+        .mobile-filter-toggle {
+            display: block;
+            margin-bottom: var(--spacing-md);
+        }
+        
+        .filter-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 999;
+        }
+        
+        body.filter-open .filter-overlay {
+            display: block;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<section class="section">
+    <div class="container">
+        <h1 class="section-title">Discover Markets</h1>
+        <p class="section-subtitle">Find sustainable markets in Jakarta</p>
+        
+        <div class="d-flex justify-between align-center mb-3">
+            <button class="btn btn-secondary mobile-filter-toggle">
+                <i data-lucide="filter"></i> Filter Options
+            </button>
+            
+            <button id="get-location-btn" class="btn btn-primary">
+                <i data-lucide="map-pin"></i> Use My Location
+            </button>
+        </div>
+        
+        <div id="location-status" class="mb-3" style="display: none;">
+            <div class="alert alert-info">
+                <i data-lucide="loader" class="loading-icon"></i> Getting your location...
+            </div>
+        </div>
+        
+        <div class="d-flex gap-3 page-layout">
+            <aside class="filter-sidebar" style="width: 25%;">
+                <h2 class="mb-3">Filter</h2>
+                
+                <div class="filter-group">
+                    <h3 class="filter-toggle" aria-expanded="true">Category</h3>
+                    <div class="filter-options">
+                        <label class="filter-option">
+                            <input type="checkbox" name="category" value="organic"> Organic
+                        </label>
+                        <label class="filter-option">
+                            <input type="checkbox" name="category" value="handmade"> Handmade
+                        </label>
+                        <label class="filter-option">
+                            <input type="checkbox" name="category" value="eco-friendly"> Eco-friendly
+                        </label>
+                        <label class="filter-option">
+                            <input type="checkbox" name="category" value="local-produce"> Local Produce
+                        </label>
+                        <label class="filter-option">
+                            <input type="checkbox" name="category" value="zero-waste"> Zero Waste
+                        </label>
+                    </div>
+                </div>
+                
+                <div class="filter-group">
+                    <h3 class="filter-toggle" aria-expanded="true">Delivery Method</h3>
+                    <div class="filter-options">
+                        <label class="filter-option">
+                            <input type="checkbox" name="delivery" value="pasar-pickup"> Pasar Pickup
+                        </label>
+                        <label class="filter-option">
+                            <input type="checkbox" name="delivery" value="kurir-lokal"> Kurir Lokal
+                        </label>
+                        <label class="filter-option">
+                            <input type="checkbox" name="delivery" value="cod"> COD
+                        </label>
+                    </div>
+                </div>
+                
+                <div class="filter-group">
+                    <h3 class="filter-toggle" aria-expanded="true">Distance</h3>
+                    <div class="filter-options">
+                        <label class="filter-option">
+                            <input type="radio" name="distance" value="1"> < 1 km
+                        </label>
+                        <label class="filter-option">
+                            <input type="radio" name="distance" value="5"> < 5 km
+                        </label>
+                        <label class="filter-option">
+                            <input type="radio" name="distance" value="10"> < 10 km
+                        </label>
+                        <label class="filter-option">
+                            <input type="radio" name="distance" value="any" checked> Any distance
+                        </label>
+                    </div>
+                </div>
+                
+                <div class="filter-group">
+                    <h3 class="filter-toggle" aria-expanded="true">Payment Options</h3>
+                    <div class="filter-options">
+                        <label class="filter-option">
+                            <input type="checkbox" name="payment" value="gopay"> GoPay
+                        </label>
+                        <label class="filter-option">
+                            <input type="checkbox" name="payment" value="ovo"> OVO
+                        </label>
+                        <label class="filter-option">
+                            <input type="checkbox" name="payment" value="bank-transfer"> Bank Transfer
+                        </label>
+                        <label class="filter-option">
+                            <input type="checkbox" name="payment" value="cash"> Cash
+                        </label>
+                    </div>
+                </div>
+                
+                <button class="btn btn-primary w-100 mt-3">Apply Filters</button>
+                <button class="btn btn-secondary w-100 mt-2">Reset</button>
+            </aside>
+            
+            <main style="flex: 1;">
+                <div id="jakarta-map" class="mb-4"></div>
+                
+                <section id="market-results">
+                    <div class="d-flex justify-between align-center mb-3">
+                        <h2>Markets Near You</h2>
+                        <div class="d-flex gap-2 align-center">
+                            <label for="sort-by">Sort by:</label>
+                            <select id="sort-by" class="form-select">
+                                <option value="distance">Distance</option>
+                                <option value="popularity">Popularity</option>
+                                <option value="rating">Rating</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="grid grid-1">
+                        <div class="card d-flex" style="flex-direction: row;">
+                            <img src="https://via.placeholder.com/150x150" alt="Pasar Minggu" style="width: 150px; height: 150px; object-fit: cover;">
+                            <div class="card-content" style="flex: 1;">
+                                <div class="d-flex justify-between">
+                                    <h3 class="card-title">Pasar Minggu</h3>
+                                    <span class="badge badge-primary">2.5 km</span>
+                                </div>
+                                <p class="card-text">A vibrant market in South Jakarta offering a wide range of sustainable and organic products from local farmers and artisans.</p>
+                                <div class="d-flex justify-between align-center">
+                                    <div>
+                                        <span class="badge badge-accent">Organic</span>
+                                        <span class="badge badge-accent">Local Produce</span>
+                                    </div>
+                                    <a href="/product-detail" class="btn btn-primary">Visit Market</a>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="card d-flex" style="flex-direction: row;">
+                            <img src="https://via.placeholder.com/150x150" alt="Pasar Santa" style="width: 150px; height: 150px; object-fit: cover;">
+                            <div class="card-content" style="flex: 1;">
+                                <div class="d-flex justify-between">
+                                    <h3 class="card-title">Pasar Santa</h3>
+                                    <span class="badge badge-primary">3.8 km</span>
+                                </div>
+                                <p class="card-text">A modern market with a focus on sustainable products, featuring eco-friendly goods, handmade crafts, and organic food options.</p>
+                                <div class="d-flex justify-between align-center">
+                                    <div>
+                                        <span class="badge badge-accent">Handmade</span>
+                                        <span class="badge badge-accent">Eco-friendly</span>
+                                    </div>
+                                    <a href="/product-detail" class="btn btn-primary">Visit Market</a>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="card d-flex" style="flex-direction: row;">
+                            <img src="https://via.placeholder.com/150x150" alt="Pasar Baru" style="width: 150px; height: 150px; object-fit: cover;">
+                            <div class="card-content" style="flex: 1;">
+                                <div class="d-flex justify-between">
+                                    <h3 class="card-title">Pasar Baru</h3>
+                                    <span class="badge badge-primary">5.2 km</span>
+                                </div>
+                                <p class="card-text">A historic market that has embraced sustainability, offering a mix of traditional goods and eco-friendly alternatives.</p>
+                                <div class="d-flex justify-between align-center">
+                                    <div>
+                                        <span class="badge badge-accent">Zero Waste</span>
+                                        <span class="badge badge-accent">Local Produce</span>
+                                    </div>
+                                    <a href="/product-detail" class="btn btn-primary">Visit Market</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </main>
+        </div>
+        
+        <div class="filter-overlay"></div>
+    </div>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Initialize Lucide icons
+    if (typeof lucide !== 'undefined') {
+        lucide.createIcons();
+    }
+    
+    // Initialize Jakarta Map
+    document.addEventListener('DOMContentLoaded', function() {
+        const map = L.map('jakarta-map').setView([-6.2088, 106.8456], 12);
+        const markersLayer = L.layerGroup().addTo(map);
+        let userMarker = null;
+        
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+        }).addTo(map);
+        
+        // Add geocoder control
+        L.Control.geocoder({
+            defaultMarkGeocode: false
+        }).on('markgeocode', function(e) {
+            const latlng = e.geocode.center;
+            map.setView(latlng, 13);
+            searchNearbyListings(latlng.lat, latlng.lng);
+        }).addTo(map);
+        
+        // Custom marker icon for listings
+        const listingIcon = L.icon({
+            iconUrl: '/static/images/marker-green.svg',
+            iconSize: [25, 41],
+            iconAnchor: [12, 41],
+            popupAnchor: [1, -34]
+        });
+        
+        // Custom marker icon for user location
+        const userIcon = L.icon({
+            iconUrl: '/static/images/marker-user.svg',
+            iconSize: [25, 41],
+            iconAnchor: [12, 41],
+            popupAnchor: [1, -34]
+        });
+        
+        // Function to fetch nearby listings from API
+        function searchNearbyListings(lat, lng, radius = 5) {
+            // Clear existing markers
+            markersLayer.clearLayers();
+            
+            // Add user location marker
+            if (userMarker) {
+                map.removeLayer(userMarker);
+            }
+            userMarker = L.marker([lat, lng], {icon: userIcon})
+                .addTo(map)
+                .bindPopup("Your Location")
+                .openPopup();
+            
+            // Show loading state
+            document.getElementById('market-results').innerHTML = `
+                <div class="text-center p-5">
+                    <i data-lucide="loader" class="loading-icon" style="width: 48px; height: 48px;"></i>
+                    <p>Searching for nearby markets...</p>
+                </div>
+            `;
+            lucide.createIcons();
+            
+            // Fetch nearby listings from API
+            fetch(`/api/nearby_listings?lat=${lat}&lng=${lng}&radius=${radius}`)
+                .then(response => response.json())
+                .then(listings => {
+                    // Update results section
+                    updateListingsResults(listings);
+                    
+                    // Add markers to map
+                    listings.forEach(listing => {
+                        const marker = L.marker([listing.latitude, listing.longitude], {icon: listingIcon})
+                            .addTo(markersLayer)
+                            .bindPopup(`
+                                <div class="map-popup">
+                                    <h3>${listing.title}</h3>
+                                    <p>${listing.category_name}</p>
+                                    <p><strong>Price:</strong> Rp ${listing.price.toLocaleString()}</p>
+                                    <p><strong>Distance:</strong> ${listing.distance_km} km</p>
+                                    <a href="/product-detail?id=${listing.listing_id}" class="btn btn-primary btn-sm">View Details</a>
+                                </div>
+                            `);
+                    });
+                })
+                .catch(error => {
+                    console.error('Error fetching nearby listings:', error);
+                    document.getElementById('market-results').innerHTML = `
+                        <div class="alert alert-error">
+                            <p>Error loading nearby markets. Please try again.</p>
+                        </div>
+                    `;
+                });
+        }
+        
+        // Function to update the listings results section
+        function updateListingsResults(listings) {
+            const resultsContainer = document.getElementById('market-results');
+            
+            if (listings.length === 0) {
+                resultsContainer.innerHTML = `
+                    <div class="text-center p-5">
+                        <i data-lucide="alert-circle" style="width: 48px; height: 48px;"></i>
+                        <h3>No Markets Found</h3>
+                        <p>We couldn't find any markets near your location. Try increasing the search radius or try a different location.</p>
+                    </div>
+                `;
+                lucide.createIcons();
+                return;
+            }
+            
+            let html = `
+                <div class="d-flex justify-between align-center mb-3">
+                    <h2>Markets Near You</h2>
+                    <div class="d-flex gap-2 align-center">
+                        <label for="sort-by">Sort by:</label>
+                        <select id="sort-by" class="form-select">
+                            <option value="distance">Distance</option>
+                            <option value="price-low">Price: Low to High</option>
+                            <option value="price-high">Price: High to Low</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="grid grid-1">
+            `;
+            
+            listings.forEach(listing => {
+                html += `
+                    <div class="card d-flex" style="flex-direction: row;">
+                        <img src="${listing.image_urls[0] || 'https://via.placeholder.com/150x150'}" alt="${listing.title}" style="width: 150px; height: 150px; object-fit: cover;">
+                        <div class="card-content" style="flex: 1;">
+                            <div class="d-flex justify-between">
+                                <h3 class="card-title">${listing.title}</h3>
+                                <span class="badge badge-primary">${listing.distance_km} km</span>
+                            </div>
+                            <p class="card-text">${listing.description}</p>
+                            <div class="d-flex justify-between align-center">
+                                <div>
+                                    <span class="badge badge-accent">${listing.category_name}</span>
+                                    <span class="price">Rp ${listing.price.toLocaleString()}</span>
+                                </div>
+                                <a href="/product-detail?id=${listing.listing_id}" class="btn btn-primary">View Details</a>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            html += '</div>';
+            resultsContainer.innerHTML = html;
+            
+            // Initialize sort functionality
+            document.getElementById('sort-by').addEventListener('change', function() {
+                const sortValue = this.value;
+                const listingCards = Array.from(document.querySelectorAll('.card'));
+                const container = document.querySelector('.grid');
+                
+                listingCards.sort((a, b) => {
+                    if (sortValue === 'distance') {
+                        const distanceA = parseFloat(a.querySelector('.badge-primary').textContent);
+                        const distanceB = parseFloat(b.querySelector('.badge-primary').textContent);
+                        return distanceA - distanceB;
+                    } else if (sortValue === 'price-low') {
+                        const priceA = parseFloat(a.querySelector('.price').textContent.replace(/[^0-9.-]+/g, ''));
+                        const priceB = parseFloat(b.querySelector('.price').textContent.replace(/[^0-9.-]+/g, ''));
+                        return priceA - priceB;
+                    } else if (sortValue === 'price-high') {
+                        const priceA = parseFloat(a.querySelector('.price').textContent.replace(/[^0-9.-]+/g, ''));
+                        const priceB = parseFloat(b.querySelector('.price').textContent.replace(/[^0-9.-]+/g, ''));
+                        return priceB - priceA;
+                    }
+                });
+                
+                // Remove all cards
+                listingCards.forEach(card => card.remove());
+                
+                // Add sorted cards back
+                listingCards.forEach(card => container.appendChild(card));
+            });
+        }
+        
+        // Get user location button
+        document.getElementById('get-location-btn').addEventListener('click', function() {
+            const locationStatus = document.getElementById('location-status');
+            locationStatus.style.display = 'block';
+            
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(
+                    // Success callback
+                    function(position) {
+                        const lat = position.coords.latitude;
+                        const lng = position.coords.longitude;
+                        
+                        // Update map view
+                        map.setView([lat, lng], 13);
+                        
+                        // Search for nearby listings
+                        searchNearbyListings(lat, lng);
+                        
+                        // Hide status
+                        locationStatus.style.display = 'none';
+                    },
+                    // Error callback
+                    function(error) {
+                        console.error('Geolocation error:', error);
+                        locationStatus.innerHTML = `
+                            <div class="alert alert-error">
+                                <p>Error getting your location: ${error.message}</p>
+                                <p>Please try again or enter your location manually.</p>
+                            </div>
+                        `;
+                    }
+                );
+            } else {
+                locationStatus.innerHTML = `
+                    <div class="alert alert-error">
+                        <p>Geolocation is not supported by your browser.</p>
+                        <p>Please enter your location manually.</p>
+                    </div>
+                `;
+            }
+        });
+        
+        // Add market markers for initial view
+        const markets = [
+            {
+                name: "Pasar Minggu",
+                location: [-6.2641, 106.8432],
+                description: "Organic and local produce",
+                category: "Local Produce",
+                price: 25000
+            },
+            {
+                name: "Pasar Santa",
+                location: [-6.2376, 106.8099],
+                description: "Handmade and eco-friendly products",
+                category: "Handmade",
+                price: 35000
+            },
+            {
+                name: "Pasar Baru",
+                location: [-6.1639, 106.8283],
+                description: "Zero waste and local produce",
+                category: "Zero Waste",
+                price: 30000
+            }
+        ];
+        
+        markets.forEach(market => {
+            L.marker(market.location, {icon: listingIcon})
+                .addTo(markersLayer)
+                .bindPopup(`
+                    <div class="map-popup">
+                        <h3>${market.name}</h3>
+                        <p>${market.description}</p>
+                        <p><strong>Category:</strong> ${market.category}</p>
+                        <p><strong>Price:</strong> Rp ${market.price.toLocaleString()}</p>
+                        <a href="/product-detail" class="btn btn-primary btn-sm">View Details</a>
+                    </div>
+                `);
+        });
+        
+        // Add click handler to map for manual location selection
+        map.on('click', function(e) {
+            const lat = e.latlng.lat;
+            const lng = e.latlng.lng;
+            
+            // Search for nearby listings
+            searchNearbyListings(lat, lng);
+        });
+    });
+    
+    // Add CSS for loading animation
+    const style = document.createElement('style');
+    style.textContent = `
+        .loading-icon {
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .alert {
+            padding: 1rem;
+            border-radius: var(--border-radius-md);
+            margin-bottom: 1rem;
+        }
+        
+        .alert-info {
+            background-color: #e3f2fd;
+            color: #0d47a1;
+            border: 1px solid #bbdefb;
+        }
+        
+        .alert-error {
+            background-color: #ffebee;
+            color: #b71c1c;
+            border: 1px solid #ffcdd2;
+        }
+        
+        .map-popup h3 {
+            margin-bottom: 0.5rem;
+        }
+        
+        .map-popup p {
+            margin-bottom: 0.5rem;
+        }
+        
+        .btn-sm {
+            padding: 0.25rem 0.5rem;
+            font-size: 0.875rem;
+        }
+    `;
+    document.head.appendChild(style);
+</script>
+{% endblock %}

@@ -1,0 +1,182 @@
+{% extends 'base.html' %}
+
+{% block title %}Pasar Berkelanjutan Jakarta - Sustainable Marketplace{% endblock %}
+
+{% block content %}
+<section class="hero">
+    <div class="container">
+        <h1>Welcome to Pasar Berkelanjutan Jakarta</h1>
+        <p>Find sustainable products from local markets in Jakarta.</p>
+        <div class="search-bar">
+            <input type="text" placeholder="Search by Kelurahan" aria-label="Search by Kelurahan">
+            <button class="btn btn-accent">Search</button>
+        </div>
+    </div>
+</section>
+
+<section class="section">
+    <div class="container">
+        <h2 class="section-title">Featured Markets</h2>
+        <p class="section-subtitle">Discover sustainable markets in your area</p>
+        
+        <div class="carousel">
+            <button class="carousel-prev" aria-label="Previous">
+                <i data-lucide="chevron-left"></i>
+            </button>
+            <div class="carousel-container d-flex gap-3">
+                <div class="card">
+                    <img src="https://via.placeholder.com/300x200" alt="Pasar Minggu" class="card-img">
+                    <div class="card-content">
+                        <h3 class="card-title">Pasar Minggu</h3>
+                        <p class="card-text">Local sustainable market in South Jakarta</p>
+                        <div class="d-flex justify-between align-center">
+                            <span class="badge badge-primary">Organic</span>
+                            <a href="/market-discovery" class="btn btn-secondary">Visit</a>
+                        </div>
+                    </div>
+                </div>
+                <div class="card">
+                    <img src="https://via.placeholder.com/300x200" alt="Pasar Santa" class="card-img">
+                    <div class="card-content">
+                        <h3 class="card-title">Pasar Santa</h3>
+                        <p class="card-text">Modern market with sustainable products</p>
+                        <div class="d-flex justify-between align-center">
+                            <span class="badge badge-primary">Local</span>
+                            <a href="/market-discovery" class="btn btn-secondary">Visit</a>
+                        </div>
+                    </div>
+                </div>
+                <div class="card">
+                    <img src="https://via.placeholder.com/300x200" alt="Pasar Baru" class="card-img">
+                    <div class="card-content">
+                        <h3 class="card-title">Pasar Baru</h3>
+                        <p class="card-text">Historic market with eco-friendly options</p>
+                        <div class="d-flex justify-between align-center">
+                            <span class="badge badge-primary">Eco-friendly</span>
+                            <a href="/market-discovery" class="btn btn-secondary">Visit</a>
+                        </div>
+                    </div>
+                </div>
+                <div class="card">
+                    <img src="https://via.placeholder.com/300x200" alt="Pasar Tebet" class="card-img">
+                    <div class="card-content">
+                        <h3 class="card-title">Pasar Tebet</h3>
+                        <p class="card-text">Community-focused sustainable market</p>
+                        <div class="d-flex justify-between align-center">
+                            <span class="badge badge-primary">Community</span>
+                            <a href="/market-discovery" class="btn btn-secondary">Visit</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <button class="carousel-next" aria-label="Next">
+                <i data-lucide="chevron-right"></i>
+            </button>
+        </div>
+    </div>
+</section>
+
+<section class="section" style="background-color: var(--off-white);">
+    <div class="container">
+        <h2 class="section-title">Produk Terbaru</h2>
+        <p class="section-subtitle">Latest sustainable products from our markets</p>
+        
+        <div class="grid grid-4">
+            <div class="card">
+                <img src="https://via.placeholder.com/300x200" alt="Organic Vegetables" class="card-img">
+                <div class="card-content">
+                    <h3 class="card-title">Organic Vegetables</h3>
+                    <p class="card-text">Fresh from local farms</p>
+                    <div class="d-flex justify-between align-center">
+                        <span class="price">Rp 25.000</span>
+                        <a href="/product-detail" class="btn btn-primary">View</a>
+                    </div>
+                </div>
+            </div>
+            <div class="card">
+                <img src="https://via.placeholder.com/300x200" alt="Handmade Soap" class="card-img">
+                <div class="card-content">
+                    <h3 class="card-title">Handmade Soap</h3>
+                    <p class="card-text">Natural ingredients, plastic-free</p>
+                    <div class="d-flex justify-between align-center">
+                        <span class="price">Rp 35.000</span>
+                        <a href="/product-detail" class="btn btn-primary">View</a>
+                    </div>
+                </div>
+            </div>
+            <div class="card">
+                <img src="https://via.placeholder.com/300x200" alt="Bamboo Utensils" class="card-img">
+                <div class="card-content">
+                    <h3 class="card-title">Bamboo Utensils</h3>
+                    <p class="card-text">Sustainable kitchen essentials</p>
+                    <div class="d-flex justify-between align-center">
+                        <span class="price">Rp 45.000</span>
+                        <a href="/product-detail" class="btn btn-primary">View</a>
+                    </div>
+                </div>
+            </div>
+            <div class="card">
+                <img src="https://via.placeholder.com/300x200" alt="Recycled Fabric Bags" class="card-img">
+                <div class="card-content">
+                    <h3 class="card-title">Recycled Fabric Bags</h3>
+                    <p class="card-text">Eco-friendly shopping bags</p>
+                    <div class="d-flex justify-between align-center">
+                        <span class="price">Rp 30.000</span>
+                        <a href="/product-detail" class="btn btn-primary">View</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="section">
+    <div class="container">
+        <h2 class="section-title">Why Choose Pasar Berkelanjutan?</h2>
+        
+        <div class="grid grid-3">
+            <div class="feature text-center p-3">
+                <div class="feature-icon mb-2">
+                    <i data-lucide="leaf" width="48" height="48"></i>
+                </div>
+                <h3>Sustainable Products</h3>
+                <p>All products meet our sustainability standards, reducing environmental impact.</p>
+            </div>
+            <div class="feature text-center p-3">
+                <div class="feature-icon mb-2">
+                    <i data-lucide="users" width="48" height="48"></i>
+                </div>
+                <h3>Support Local Communities</h3>
+                <p>Every purchase directly supports local Jakarta businesses and artisans.</p>
+            </div>
+            <div class="feature text-center p-3">
+                <div class="feature-icon mb-2">
+                    <i data-lucide="truck" width="48" height="48"></i>
+                </div>
+                <h3>Convenient Delivery</h3>
+                <p>Choose from multiple delivery options including local couriers and pickup.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="section cta-section" style="background-color: var(--primary-green); color: var(--white);">
+    <div class="container text-center">
+        <h2>Ready to shop sustainably?</h2>
+        <p class="mb-4">Join our community of eco-conscious shoppers and sellers.</p>
+        <div class="d-flex justify-center gap-2">
+            <a href="/signup" class="btn btn-accent">Sign Up Now</a>
+            <a href="/market-discovery" class="btn btn-secondary" style="color: var(--white); border-color: var(--white);">Explore Markets</a>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Initialize Lucide icons
+    if (typeof lucide !== 'undefined') {
+        lucide.createIcons();
+    }
+</script>
+{% endblock %}
