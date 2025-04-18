@@ -1,6 +1,7 @@
 """
 Database initialization script for Pasar Berkelanjutan Jakarta.
 This script creates the necessary database tables and populates them with initial data.
+Uses the factory pattern for Flask application creation.
 """
 
 import os
@@ -14,14 +15,23 @@ from datetime import datetime
 # Load environment variables
 load_dotenv()
 
-# Create Flask app
-app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = config.get_db_uri()
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-db.init_app(app)
+def create_app():
+    """Create and configure the Flask application using the factory pattern."""
+    app = Flask(__name__)
+    app.config['SQLALCHEMY_DATABASE_URI'] = config.get_db_uri()
+    app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+    db.init_app(app)
+    return app
 
-def init_db():
-    """Initialize the database with tables and sample data."""
+def init_db(app=None):
+    """Initialize the database with tables and sample data.
+    
+    Args:
+        app: Flask application instance. If None, a new app will be created.
+    """
+    if app is None:
+        app = create_app()
+        
     with app.app_context():
         # Create tables
         db.create_all()
@@ -150,4 +160,5 @@ def init_db():
         print("Database initialization complete!")
 
 if __name__ == "__main__":
-    init_db()
+    app = create_app()
+    init_db(app)
